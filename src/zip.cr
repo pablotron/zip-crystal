@@ -516,6 +516,28 @@ module Zip
       @pos - src_pos
     end
 
+    def add(
+      path    : String,
+      body    : String | Bytes,
+      method  : CompressionMethod = CompressionMethod::DEFLATE,
+      time    : Time = Time.now,
+      comment : String = "",
+    ) : UInt64
+      add(path, MemoryIO.new(body), method, time, comment)
+    end
+
+    def add_file(
+      path      : String,
+      file_path : String,
+      method    : CompressionMethod = CompressionMethod::DEFLATE,
+      time      : Time = Time.now,
+      comment   : String = "",
+    ) : UInt64
+      File.open(file_path, "rb") do |io|
+        add(path, io, method, time, comment)
+      end
+    end
+
     # 4.3.16  End of central directory record:
     #
     # end of central dir signature    4 bytes  (0x06054b50)
