@@ -41,30 +41,30 @@ module Zip
   # Note:  Bits 1 and 2 are undefined if the compression
   #        method is any other.
   #
-  # Bit 3: If this bit is set, the fields crc-32, compressed 
-  #        size and uncompressed size are set to zero in the 
-  #        local header.  The correct values are put in the 
+  # Bit 3: If this bit is set, the fields crc-32, compressed
+  #        size and uncompressed size are set to zero in the
+  #        local header.  The correct values are put in the
   #        data descriptor immediately following the compressed
-  #        data.  (Note: PKZIP version 2.04g for DOS only 
-  #        recognizes this bit for method 8 compression, newer 
-  #        versions of PKZIP recognize this bit for any 
+  #        data.  (Note: PKZIP version 2.04g for DOS only
+  #        recognizes this bit for method 8 compression, newer
+  #        versions of PKZIP recognize this bit for any
   #        compression method.)
   #
   # Bit 4: Reserved for use with method 8, for enhanced
-  #        deflating. 
+  #        deflating.
   #
-  # Bit 5: If this bit is set, this indicates that the file is 
-  #        compressed patched data.  (Note: Requires PKZIP 
+  # Bit 5: If this bit is set, this indicates that the file is
+  #        compressed patched data.  (Note: Requires PKZIP
   #        version 2.70 or greater)
   #
   # Bit 6: Strong encryption.  If this bit is set, you MUST
   #        set the version needed to extract value to at least
   #        50 and you MUST also set bit 0.  If AES encryption
-  #        is used, the version needed to extract value MUST 
+  #        is used, the version needed to extract value MUST
   #        be at least 51. See the section describing the Strong
-  #        Encryption Specification for details.  Refer to the 
-  #        section in this document entitled "Incorporating PKWARE 
-  #        Proprietary Technology into Your Product" for more 
+  #        Encryption Specification for details.  Refer to the
+  #        section in this document entitled "Incorporating PKWARE
+  #        Proprietary Technology into Your Product" for more
   #        information.
   #
   # Bit 7: Currently unused.
@@ -81,12 +81,12 @@ module Zip
   #
   # Bit 12: Reserved by PKWARE for enhanced compression.
   #
-  # Bit 13: Set when encrypting the Central Directory to indicate 
+  # Bit 13: Set when encrypting the Central Directory to indicate
   #         selected data values in the Local Header are masked to
-  #         hide their actual values.  See the section describing 
+  #         hide their actual values.  See the section describing
   #         the Strong Encryption Specification for details.  Refer
-  #         to the section in this document entitled "Incorporating 
-  #         PKWARE Proprietary Technology into Your Product" for 
+  #         to the section in this document entitled "Incorporating
+  #         PKWARE Proprietary Technology into Your Product" for
   #         more information.
   #
   # Bit 14: Reserved by PKWARE.
@@ -227,7 +227,7 @@ module Zip
 
     def initialize(
       @pos      : UInt64,
-      @path     : String, 
+      @path     : String,
       @io       : IO,
       @method   : CompressionMethod = CompressionMethod::DEFLATE,
       @time     : Time = Time.now,
@@ -332,8 +332,8 @@ module Zip
     #       compressed size                 4 bytes
     #       uncompressed size               4 bytes
     #
-    # 4.3.9.3 Although not originally assigned a signature, the value 
-    # 0x08074b50 has commonly been adopted as a signature value 
+    # 4.3.9.3 Although not originally assigned a signature, the value
+    # 0x08074b50 has commonly been adopted as a signature value
 
     FOOTER_MAGIC = 0x08074b50_u32
 
@@ -371,7 +371,7 @@ module Zip
     # internal file attributes        2 bytes
     # external file attributes        4 bytes
     # relative offset of local header 4 bytes
-    # 
+    #
     # file name (variable size)
     # extra field (variable size)
     # file comment (variable size)
@@ -397,7 +397,7 @@ module Zip
       @crc.to_io(io, LE)
       @dst_len.to_io(io, LE)
       @src_len.to_io(io, LE)
-      
+
       # get path length and write it
       path_len = @path.bytesize
       path_len.to_u16.to_io(io, LE)
@@ -484,7 +484,7 @@ module Zip
     end
 
     def add(
-      path    : String, 
+      path    : String,
       io      : IO,
       method  : CompressionMethod = CompressionMethod::DEFLATE,
       time    : Time = Time.now,
@@ -508,7 +508,7 @@ module Zip
 
       # add to list of entries
       @entries << entry
-      
+
       # write entry, update offset
       @pos += entry.to_s(@io)
 
@@ -559,12 +559,12 @@ module Zip
   def self.write(
     io      : IO,
     pos     : UInt64 = 0_u64,
-    comment : String = "", 
+    comment : String = "",
     version : UInt32 = 0_u32,
     &cb     : Writer -> \
   ) : UInt64
     r = 0_u64
-    begin 
+    begin
       w = Writer.new(io, pos, comment, version)
       cb.call(w)
     ensure
@@ -581,7 +581,7 @@ module Zip
   def self.write(
     path    : String,
     pos     : UInt64 = 0_u64,
-    comment : String = "", 
+    comment : String = "",
     version : UInt32 = 0_u32,
     &cb     : Writer -> \
   ) : UInt64
