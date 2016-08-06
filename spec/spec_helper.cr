@@ -1,2 +1,2 @@
 require "spec"
-require "../src/zip-crystal"
+require "../src/zip"
