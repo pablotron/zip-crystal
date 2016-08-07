@@ -177,14 +177,19 @@ module Zip
       src_len = 0_u32
 
       while ((len = src_io.read(buf)) > 0)
-        # TODO: crc32
+        # build output slice
+        dst_buf = (len < buf.size) ? buf[0, len] : buf
 
-        dst_io.write((len < buf.size) ? Bytes.new(buf.to_unsafe, len) : buf)
+        # add to crc
+        crc = (crc != 0) ? Zlib.crc32(dst_buf, crc) : Zlib.crc32(dst_buf)
+
+        # write to output buffer
+        dst_io.write(dst_buf)
         src_len += len
       end
 
       # return results
-      { crc, src_len, src_len }
+      { crc.to_u32, src_len, src_len }
     end
   end
 
@@ -203,10 +208,14 @@ module Zip
         sync_close: false,
       ) do |zlib_io|
         while ((len = src_io.read(buf)) > 0)
-          # TODO: crc32
+          # build output slice
+          dst_buf = (len < buf.size) ? buf[0, len] : buf
+
+          # add to crc
+          crc = (crc != 0) ? Zlib.crc32(dst_buf, crc) : Zlib.crc32(dst_buf)
 
           # compress bytes to memory io
-          zlib_io.write((len < buf.size) ? Bytes.new(buf.to_unsafe, len) : buf)
+          zlib_io.write(dst_buf)
           src_len += len
 
           # write compressed bytes to dst_io
@@ -219,7 +228,7 @@ module Zip
       end
 
       # return results
-      { crc, src_len, dst_len }
+      { crc.to_u32, src_len, dst_len }
     end
   end
 
@@ -523,12 +532,12 @@ module Zip
 
     def add(
       path    : String,
-      body    : String | Bytes,
+      data    : String | Bytes,
       method  : CompressionMethod = CompressionMethod::DEFLATE,
       time    : Time = Time.now,
       comment : String = "",
     ) : UInt32
-      add(path, MemoryIO.new(body), method, time, comment)
+      add(path, MemoryIO.new(data), method, time, comment)
     end
 
     def add_file(
