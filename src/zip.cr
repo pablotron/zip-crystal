@@ -13,6 +13,9 @@ module Zip
 
   LE = IO::ByteFormat::LittleEndian
 
+  # size of buffers, in bytes
+  BUFFER_SIZE = 8192
+
   # 4.4.4 general purpose bit flag: (2 bytes)
   #
   # Bit 0: If set, indicates that the file is encrypted.
@@ -173,15 +176,21 @@ module Zip
     def compress_none(src_io, dst_io)
       crc = 0_u32
 
-      buf = Bytes.new(4096)
+      buf = Bytes.new(BUFFER_SIZE)
       src_len = 0_u32
 
       while ((len = src_io.read(buf)) > 0)
         # build output slice
         dst_buf = (len < buf.size) ? buf[0, len] : buf
+        dst_crc = Zlib.crc32(dst_buf)
 
-        # add to crc
-        crc = (crc != 0) ? Zlib.crc32(dst_buf, crc) : Zlib.crc32(dst_buf)
+        # update crc
+        crc = if crc != 0
+          Zlib.crc32_combine(crc, dst_crc, dst_buf.size)
+        else
+          Zlib.crc32(dst_buf)
+        end
+
 
         # write to output buffer
         dst_io.write(dst_buf)
@@ -194,41 +203,104 @@ module Zip
   end
 
   module DeflateCompressionHelper
+    ZALLOC_PROC = LibZ::AllocFunc.new do |data, num_items, size|
+      GC.malloc(num_items * size)
+    end
+
+    ZFREE_PROC = LibZ::FreeFunc.new do |data, addr|
+      GC.free(addr)
+    end
+
+    ZLIB_VERSION = LibZ.zlibVersion
+
     def compress_deflate(src_io, dst_io)
       crc = 0_u32
-      src_len = 0_u32
-      dst_len = 0_u32
 
-      # create buffer and intermediate memory io
-      buf = Bytes.new(4096)
-      mem_io = MemoryIO.new(4096)
+      # create read and compress buffers
+      src_buf = Bytes.new(BUFFER_SIZE)
+      dst_buf = Bytes.new(BUFFER_SIZE)
 
-      Zlib::Deflate.new(
-        output:     mem_io,
-        sync_close: false,
-      ) do |zlib_io|
-        while ((len = src_io.read(buf)) > 0)
-          # build output slice
-          dst_buf = (len < buf.size) ? buf[0, len] : buf
+      # create deflate stream
+      z = LibZ::ZStream.new(
+        zalloc: ZALLOC_PROC,
+        zfree:  ZFREE_PROC,
+      )
 
-          # add to crc
-          crc = (crc != 0) ? Zlib.crc32(dst_buf, crc) : Zlib.crc32(dst_buf)
+      # init stream
+      err = LibZ.deflateInit2(
+        pointerof(z),
+        LibZ::DEFAULT_COMPRESSION, # FIXME: make this configurable
+        LibZ::Z_DEFLATED,
+        -15, # raw deflate, window bits = 15
+        LibZ::DEF_MEM_LEVEL,
+        LibZ::Strategy::DEFAULT_STRATEGY,
+        ZLIB_VERSION,
+        sizeof(LibZ::ZStream)
+      )
 
-          # compress bytes to memory io
-          zlib_io.write(dst_buf)
-          src_len += len
-
-          # write compressed bytes to dst_io
-          dst_io.write(Bytes.new(mem_io.buffer, mem_io.pos))
-          dst_len += mem_io.pos
-
-          # clear memio
-          mem_io.rewind
-        end
+      # check for error
+      if err != LibZ::Error::OK
+        # raise zlib error
+        raise Zlib::Error.new(err, z)
       end
 
+      # loop and compress input data
+      while ((len = src_io.read(src_buf)) > 0)
+        # build temp slice (if necessary)
+        tmp_buf = (len < src_buf.size) ? src_buf[0, len] : src_buf
+        tmp_crc = Zlib.crc32(tmp_buf)
+
+        # update crc
+        crc = if crc != 0
+          Zlib.crc32_combine(crc, tmp_crc, tmp_buf.size)
+        else
+          Zlib.crc32(tmp_buf)
+        end
+
+        # set zlib input buffer
+        z.next_in = tmp_buf.to_unsafe
+        z.avail_in = tmp_buf.size.to_u32
+
+        # write compressed data to dst io
+        write_compressed(dst_io, dst_buf, pointerof(z), false)
+      end
+
+      # set zlib input buffer to null
+      z.next_in = Pointer(UInt8).null
+      z.avail_in = 0_u32
+
+      # flush remaining data
+      write_compressed(dst_io, dst_buf, pointerof(z), true)
+
+      # free stream
+      LibZ.deflateEnd(pointerof(z))
+
       # return results
-      { crc.to_u32, src_len, dst_len }
+      { crc.to_u32, z.total_in.to_u32, z.total_out.to_u32 }
+    end
+
+    private def write_compressed(
+      io    : IO,
+      buf   : Bytes,
+      zp    : Pointer(LibZ::ZStream),
+      flush : Bool,
+    )
+      zf = flush ? LibZ::Flush::FINISH : LibZ::Flush::NO_FLUSH
+
+      loop do
+        # set zlib output buffer
+        zp.value.next_out = buf.to_unsafe
+        zp.value.avail_out = buf.size.to_u32
+
+        # compress data (TODO: check for error)
+        LibZ.deflate(zp, zf)
+
+        # write compressed buffer to dst io
+        len = buf.size - zp.value.avail_out
+        io.write((len > 0) ? buf[0, len] : buf)
+
+        break if zp.value.avail_out != 0
+      end
     end
   end
 
@@ -449,7 +521,6 @@ module Zip
       # return number of bytes written
       46_u32 + path_len + extras_len + comment_len
     end
-
   end
 
   class Writer
