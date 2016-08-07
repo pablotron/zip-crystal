@@ -24,6 +24,16 @@ describe Zip::Writer do
     end
   end
 
+  it "creates an entry from a String with no compression" do
+    Zip.write(File.join(TEST_DIR, "test-string-none.zip")) do |zip|
+      zip.add(
+        path:   "bar.txt",
+        data:   "bar",
+        method: Zip::CompressionMethod::NONE
+      )
+    end
+  end
+
   it "creates an entry from a MemoryIO" do
     Zip.write(File.join(TEST_DIR, "test-memio.zip")) do |zip|
       zip.add("bar.txt", "bar")
