@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 TEST_DIR = File.dirname(__FILE__)
-TEST_FILE_PATH = File.join(TEST_DIR, "..", "shard.yml")
+TEST_FILE_PATH = File.join(TEST_DIR, "..", "src", "zip.cr")
 
 describe Zip do
   # TODO: Write tests
@@ -42,7 +42,7 @@ describe Zip::Writer do
 
   it "creates an entry from a File" do
     Zip.write(File.join(TEST_DIR, "test-file.zip")) do |zip|
-      zip.add_file("shard.yml", TEST_FILE_PATH)
+      zip.add_file("test.cr", TEST_FILE_PATH)
     end
   end
 
@@ -50,7 +50,7 @@ describe Zip::Writer do
     Zip.write(File.join(TEST_DIR, "test-many.zip")) do |zip|
       zip.add("foo.txt", MemoryIO.new("foo"))
       zip.add("bar.txt", "bar")
-      zip.add_file("shard.yml", TEST_FILE_PATH)
+      zip.add_file("test.cr", TEST_FILE_PATH)
     end
   end
 end
