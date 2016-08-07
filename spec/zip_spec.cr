@@ -1,6 +1,7 @@
 require "./spec_helper"
 
 TEST_DIR = File.dirname(__FILE__)
+TEST_FILE_PATH = File.join(TEST_DIR, "..", "shard.yml")
 
 describe Zip do
   # TODO: Write tests
@@ -11,9 +12,35 @@ describe Zip do
 end
 
 describe Zip::Writer do
-  Zip.write(File.join(TEST_DIR, "test.zip")) do |zip|
-    zip.add("foo.txt", MemoryIO.new("foo"))
-    zip.add("bar.txt", "bar")
-    zip.add_file("shard.yml", File.join(TEST_DIR, "..", "shard.yml"))
+  it "creates an empty archive" do
+    Zip.write(File.join(TEST_DIR, "test-empty.zip")) do |zip|
+      # do nothing
+    end
+  end
+
+  it "creates an entry from a String" do
+    Zip.write(File.join(TEST_DIR, "test-string.zip")) do |zip|
+      zip.add("bar.txt", "bar")
+    end
+  end
+
+  it "creates an entry from a MemoryIO" do
+    Zip.write(File.join(TEST_DIR, "test-memio.zip")) do |zip|
+      zip.add("bar.txt", "bar")
+    end
+  end
+
+  it "creates an entry from a File" do
+    Zip.write(File.join(TEST_DIR, "test-file.zip")) do |zip|
+      zip.add_file("shard.yml", TEST_FILE_PATH)
+    end
+  end
+
+  it "creates an archive from a MemoryIO, String, and File" do
+    Zip.write(File.join(TEST_DIR, "test-many.zip")) do |zip|
+      zip.add("foo.txt", MemoryIO.new("foo"))
+      zip.add("bar.txt", "bar")
+      zip.add_file("shard.yml", TEST_FILE_PATH)
+    end
   end
 end
