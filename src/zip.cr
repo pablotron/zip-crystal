@@ -3,7 +3,10 @@ require "zlib"
 
 #
 # TODO:
-# [ ] date/time
+# [x] date/time
+# [x] reader
+# [ ] documentation
+# [ ] full tests
 # [ ] zip64
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
 # [ ] extra data
@@ -164,9 +167,13 @@ module Zip
 
   module TimeHelper
     def write_time(io : IO, time : Time) : UInt32
-      # TODO
-      0_u32.to_u16.to_io(io, LE)
-      0_u32.to_u16.to_io(io, LE)
+      year = Math.max(1980, time.year) - 1980
+
+      # convert to dos timestamp
+      ((
+        (year << 25) | (time.month << 21) | (time.day << 16) |
+        (time.hour << 11) | (time.minute << 5) | (time.second >> 1)
+      ) & UInt32::MAX).to_u32.to_io(io, LE)
 
       # return number of bytes written
       4_u32
@@ -268,7 +275,7 @@ module Zip
         end
 
         # set zlib input buffer
-        z.next_in = tmp_buf.pointer(0)
+        z.next_in = tmp_buf.to_unsafe
         z.avail_in = tmp_buf.size.to_u32
 
         # write compressed data to dst io
@@ -299,7 +306,7 @@ module Zip
 
       loop do
         # set zlib output buffer
-        zp.value.next_out = buf.pointer(0)
+        zp.value.next_out = buf.to_unsafe
         zp.value.avail_out = buf.size.to_u32
 
         # compress data (TODO: check for error)
