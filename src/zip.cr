@@ -180,30 +180,6 @@ module Zip
     end
   end
 
-  # TODO
-  class Reader
-    getter? :closed, :sync_close
-
-    def initialize(
-      @io         : IO,
-      @pos        : UInt32 = 0,
-      @sync_close : Bool = false,
-    )
-      @closed = false
-    end
-
-    private def assert_open
-      raise Error.new("already closed") if closed?
-    end
-
-    def close
-      assert_open
-
-      @io.close if @sync_close
-      @closed = true
-    end
-  end
-
   module NoneCompressionHelper
     def compress_none(src_io, dst_io)
       crc = 0_u32
@@ -739,15 +715,328 @@ module Zip
     end
   end
 
+  # alias Source = IO::FileDescriptor | MemoryIO
+
+  class Source
+    include IO
+
+    def initialize(@io : IO::FileDescriptor | MemoryIO)
+    end
+
+    delegate read, to: @io
+    delegate write, to: @io
+    forward_missing_to @io
+  end
+
+  # central file header signature   4 bytes  (0x02014b50)
+  # version made by                 2 bytes
+  # version needed to extract       2 bytes
+  # general purpose bit flag        2 bytes
+  # compression method              2 bytes
+  # last mod file time              2 bytes
+  # last mod file date              2 bytes
+  # crc-32                          4 bytes
+  # compressed size                 4 bytes
+  # uncompressed size               4 bytes
+  # file name length                2 bytes
+  # extra field length              2 bytes
+  # file comment length             2 bytes
+  # disk number start               2 bytes
+  # internal file attributes        2 bytes
+  # external file attributes        4 bytes
+  # relative offset of local header 4 bytes
+  #
+  # file name (variable size)
+  # extra field (variable size)
+  # file comment (variable size)
+
+  class Entry
+    getter :version, :version_needed, :flags, :method, :datetime, :crc,
+           :compressed_size, :uncompressed_size, :path, :extras,
+           :comment, :internal_attr, :external_attr, :pos
+
+    def initialize(io)
+      # allocate slice for data
+      mem = Bytes.new(46)
+
+      # read entry
+      if ((len = io.read(mem)) != 46)
+        raise Error.new("couldn't read full CDR entry (#{len} != 46)")
+      end
+
+      # create memory io for slice
+      mem_io = MemoryIO.new(mem, false)
+
+      magic = UInt32.from_io(mem_io, LE)
+      if magic != MAGIC[:cdr_header]
+        raise Error.new("invalid CDR header magic")
+      end
+
+      # read versions
+      @version = UInt16.from_io(mem_io, LE).as(UInt16)
+      @version_needed = UInt16.from_io(mem_io, LE).as(UInt16)
+
+      # TODO: check versions
+
+      # read flags, method, and date
+      @flags = UInt16.from_io(mem_io, LE).as(UInt16)
+      @method = UInt16.from_io(mem_io, LE).as(UInt16)
+      @datetime = UInt32.from_io(mem_io, LE).as(UInt32)
+
+      @crc = UInt32.from_io(mem_io, LE).as(UInt32)
+      @compressed_size = UInt32.from_io(mem_io, LE).as(UInt32)
+      @uncompressed_size = UInt32.from_io(mem_io, LE).as(UInt32)
+
+      # read lengths
+      @path_len = UInt16.from_io(mem_io, LE).not_nil!.as(UInt16)
+      @extras_len = UInt16.from_io(mem_io, LE).as(UInt16)
+      @comment_len = UInt16.from_io(mem_io, LE).as(UInt16)
+
+      @internal_attr = UInt16.from_io(mem_io, LE).as(UInt16)
+      @external_attr = UInt32.from_io(mem_io, LE).as(UInt32)
+      @pos = UInt32.from_io(mem_io, LE).as(UInt32)
+
+      # close memory io
+      mem_io.close
+
+      # read path
+      @path = if @path_len > 0
+        buf = Bytes.new(@path_len)
+
+        if io.read(buf) != @path_len
+          raise Error.new("couldn't read CDR entry name")
+        end
+
+        # TODO: handle encoding
+        String.new(buf)
+      else
+        ""
+      end
+
+      # read extras
+      @extras = if @extras_len > 0
+        buf = Bytes.new(@extras_len)
+
+        if io.read(buf) != @extras_len
+          raise Error.new("couldn't read CDR entry extras")
+        end
+
+        # TODO: decode extras?
+        buf
+      else
+        # TODO
+        Bytes.new(0)
+      end
+
+      # read comment
+      @comment = if @comment_len > 0
+        buf = Bytes.new(@comment_len)
+        if io.read(buf) != @comment_len
+          raise Error.new("couldn't read CDR entry comment")
+        end
+
+        # TODO: handle encoding
+        String.new(buf)
+      else
+        ""
+      end
+    end
+  end
+
+  # 4.3.16  End of central directory record:
+  #
+  # * end of central dir signature    4 bytes  (0x06054b50)
+  # * number of this disk             2 bytes
+  # * number of the disk with the
+  #   start of the central directory  2 bytes
+  # * total number of entries in the
+  #   central directory on this disk  2 bytes
+  # * total number of entries in
+  #   the central directory           2 bytes
+  # * size of the central directory   4 bytes
+  # * offset of start of central
+  #   directory with respect to
+  #   the starting disk number        4 bytes
+  # * .ZIP file comment length        2 bytes
+  # * .ZIP file comment       (variable size)
+
+  class Archive
+    getter :entries
+
+    def initialize(@io : Source)
+      # initialize entries
+      # find footer and end of io
+      footer_pos, end_pos = find_footer_and_eof(@io)
+
+      # skip magic
+      @io.pos = footer_pos + 4
+
+      # create slice and memory io
+      mem = Bytes.new(18)
+
+      # read footer into memory io
+      @io.pos = footer_pos + 4
+      if ((len = @io.read(mem)) < mem.size)
+        raise Error.new("couldn't read zip footer")
+      end
+
+      # create memory io for slice
+      mem_io = MemoryIO.new(mem, false)
+
+      # read disk numbers
+      @disk_num = mem_io.read_bytes(UInt16, LE).as(UInt16)
+      @cdr_disk = mem_io.read_bytes(UInt16, LE).as(UInt16)
+
+      # check disk numbers
+      if @disk_num != @cdr_disk
+        raise Error.new("multi-disk archives not supported")
+      end
+
+      # read entry counts
+      @num_disk_entries = mem_io.read_bytes(UInt16, LE).as(UInt16)
+      @num_entries = mem_io.read_bytes(UInt16, LE).not_nil!.as(UInt16)
+
+      # check entry counts
+      if @num_disk_entries != @num_entries
+        raise Error.new("multi-disk archives not supported")
+      end
+
+      # read cdr position and length
+      @cdr_len = mem_io.read_bytes(UInt32, LE).not_nil!.as(UInt32)
+      @cdr_pos = mem_io.read_bytes(UInt32, LE).not_nil!.as(UInt32)
+
+      # check cdr position
+      if @cdr_pos.not_nil! + @cdr_len.not_nil! >= end_pos
+        raise Error.new("invalid CDR offset: #{@cdr_pos}")
+      end
+
+      # read comment length and comment body
+      @comment_len = mem_io.read_bytes(UInt16, LE).not_nil!.as(UInt16)
+      @comment = if @comment_len.not_nil! > 0
+        # allocate space for comment
+        slice = Bytes.new(@comment_len.not_nil!)
+
+        # seek to comment position
+        @io.pos = footer_pos + 22
+
+        # read comment data
+        if ((len = @io.read(slice)) != @comment_len)
+          raise Error.new("archive comment read truncated")
+        end
+
+        # FIXME: shouldn't assume UTF-8 here
+        String.new(slice, "UTF-8")
+      else
+        ""
+      end
+
+      # close memory io
+      mem_io.close
+
+      # read entries
+      @entries = [] of Entry
+      read_entries(@entries, @io, @cdr_pos, @cdr_len, @num_entries)
+    end
+
+    private def read_entries(
+      entries     : Array(Entry),
+      io          : Source,
+      cdr_pos     : UInt32,
+      cdr_len     : UInt32,
+      num_entries : UInt16,
+    )
+      # get end position
+      end_cdr_pos = cdr_pos + cdr_len
+
+      # seek to start of entries
+      io.pos = cdr_pos
+
+      # read entries
+      num_entries.times do
+        # create new entry
+        entries << Entry.new(io)
+
+        # check position
+        if io.pos > end_cdr_pos
+          raise Error.new("read past CDR")
+        end
+      end
+    end
+
+    private def find_footer_and_eof(io : Source)
+      # seek to end of file
+      io.seek(0, IO::Seek::End)
+      end_pos = io.pos
+
+      if end_pos < 22
+        raise Error.new("too small for end of central directory")
+      end
+
+      curr_pos = end_pos - 22
+      while curr_pos >= 0
+        # seek to current position
+        io.pos = curr_pos
+
+        # read what might be the end_cdr magic
+        maybe_end_magic = UInt32.from_io(io, LE)
+
+        if maybe_end_magic == MAGIC[:cdr_footer]
+          # jump to archive commment len (maybe)
+          maybe_comment_len_pos = curr_pos + 20
+          io.pos = maybe_comment_len_pos
+
+          # get archive commment len (maybe)
+          maybe_comment_len = UInt16.from_io(io, LE)
+
+          if curr_pos + 22 + maybe_comment_len == end_pos
+            # magic and comment line up: probably found end_cdr
+            return { curr_pos, end_pos }
+          end
+        end
+
+        # step back one byte
+        curr_pos -= 1
+      end
+
+      # throw error
+      raise Error.new("couldn't find end of central directory")
+    end
+  end
+
+  class Reader
+    getter? :closed, :sync_close
+    getter :zip
+
+    def initialize(
+      @io         : Source,
+      @pos        : UInt32 = 0_u32,
+      @sync_close : Bool = false,
+    )
+      @closed = false
+      @zip = Archive.new(@io)
+    end
+
+    private def assert_open
+      raise Error.new("already closed") if closed?
+    end
+
+    def close
+      assert_open
+
+      @io.close if @sync_close
+      @closed = true
+    end
+  end
+
   def self.read(
     io          : IO,
     pos         : UInt32 = 0_u32,
     sync_close  : Bool = false,
-    &cb         : Reader -> \
+    &cb         : Archive -> \
   )
     begin
-      r = Reader.new(io, pos, sync_close)
-      cb.call(r)
+      r = Reader.new(Source.new(io), pos, sync_close)
+      cb.call(r.zip)
     ensure
       if r
         r.close unless r.closed?
@@ -758,8 +1047,16 @@ module Zip
   end
 
   def self.read(
+    slice : Bytes,
+    &cb   : Archive -> \
+  )
+    src = Source.new(MemoryIO.new(slice, false))
+    read(src, 0_u32, false, &cb)
+  end
+
+  def self.read(
     path : String,
-    &cb  : Reader -> \
+    &cb  : Archive -> \
   )
     File.open(path, "rb") do |io|
       read(io, 0_u32, true, &cb)

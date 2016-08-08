@@ -56,6 +56,9 @@ describe Zip::Writer do
 end
 
 describe Zip::Reader do
-  Zip.read(File.join(TEST_DIR, "test-empty.zip")) do |zip|
+  Zip.read(File.join(TEST_DIR, "test-string.zip")) do |zip|
+    zip.entries.each do |e|
+      pp e
+    end
   end
 end
