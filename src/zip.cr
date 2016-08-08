@@ -1,6 +1,16 @@
 require "./zip/*"
 require "zlib"
 
+#
+# TODO:
+# [ ] date/time
+# [ ] zip64
+# [ ] legacy unicode (e.g., non-bit 11) path/comment support
+# [ ] extra data
+# [ ] unix uids
+# [ ] bzip2/lzma support
+#
+
 module Zip
   VERSION = "0.1.0"
 
@@ -105,7 +115,7 @@ module Zip
   #
   @[Flags]
   enum GeneralFlags
-    WEAK_ENCRYPTION
+    ENCRYPTION
     COMPRESSION_OPTION_1
     COMPRESSION_OPTION_2
     FOOTER
@@ -258,7 +268,7 @@ module Zip
         end
 
         # set zlib input buffer
-        z.next_in = tmp_buf.to_unsafe
+        z.next_in = tmp_buf.pointer(0)
         z.avail_in = tmp_buf.size.to_u32
 
         # write compressed data to dst io
@@ -289,16 +299,18 @@ module Zip
 
       loop do
         # set zlib output buffer
-        zp.value.next_out = buf.to_unsafe
+        zp.value.next_out = buf.pointer(0)
         zp.value.avail_out = buf.size.to_u32
 
         # compress data (TODO: check for error)
         LibZ.deflate(zp, zf)
 
-        # write compressed buffer to dst io
-        len = buf.size - zp.value.avail_out
-        io.write((len > 0) ? buf[0, len] : buf)
+        if ((len = buf.size - zp.value.avail_out) > 0)
+          # write compressed buffer to dst io
+          io.write((len < buf.size) ? buf[0, len] : buf)
+        end
 
+        # exit loop if there is no remaining space
         break if zp.value.avail_out != 0
       end
     end
@@ -309,9 +321,9 @@ module Zip
     include NoneCompressionHelper
     include DeflateCompressionHelper
 
-    # TODO version needed to extract and header flags
-    # (used for header and central header)
-    VERSION_NEEDED = 0_u32
+    # version needed to extract and header flags (4.4.3.2)
+    # (used for local header and central header)
+    VERSION_NEEDED = 45_u32
     GENERAL_FLAGS = GeneralFlags.flags(FOOTER, EFS)
 
     def initialize(
@@ -374,7 +386,7 @@ module Zip
 
       # write magic (u32), version needed (u16), flags (u16), and
       # compression method (u16)
-      MAGIC[:file_header].to_io(io, LE)
+      MAGIC[:file_header].to_u32.to_io(io, LE)
       VERSION_NEEDED.to_u16.to_io(io, LE)
       GENERAL_FLAGS.to_u16.to_io(io, LE)
       method.to_u16.to_io(io, LE)
@@ -384,9 +396,9 @@ module Zip
 
       # crc (u32), compressed size (u32), uncompressed size (u32)
       # (these will be populated in the footer)
-      0_u32.to_io(io, LE)
-      0_u32.to_io(io, LE)
-      0_u32.to_io(io, LE)
+      0_u32.to_u32.to_io(io, LE)
+      0_u32.to_u32.to_io(io, LE)
+      0_u32.to_u32.to_io(io, LE)
 
       # write file path length (u16)
       path_len.to_u16.to_io(io, LE)
@@ -432,12 +444,12 @@ module Zip
       dst_len : UInt32,
     ) : UInt32
       # write magic (u32)
-      MAGIC[:file_footer].to_io(io, LE)
+      MAGIC[:file_footer].to_u32.to_io(io, LE)
 
       # write crc (u32), compressed size (u32), and full size (u32)
-      crc.to_io(io, LE)
-      dst_len.to_io(io, LE)
-      src_len.to_io(io, LE)
+      crc.to_u32.to_io(io, LE)
+      dst_len.to_u32.to_io(io, LE)
+      src_len.to_u32.to_io(io, LE)
 
       # return number of bytes written
       16_u32
@@ -473,7 +485,7 @@ module Zip
       io      : IO,
       version : UInt32 = CENTRAL_VERSION_MADE_BY
     ) : UInt32
-      MAGIC[:cdr_header].to_io(io, LE)
+      MAGIC[:cdr_header].to_u32.to_io(io, LE)
       version.to_u16.to_io(io, LE)
       VERSION_NEEDED.to_u16.to_io(io, LE)
       GENERAL_FLAGS.to_u16.to_io(io, LE)
@@ -482,9 +494,9 @@ module Zip
       # write time
       write_time(io, @time)
 
-      @crc.to_io(io, LE)
-      @dst_len.to_io(io, LE)
-      @src_len.to_io(io, LE)
+      @crc.to_u32.to_io(io, LE)
+      @dst_len.to_u32.to_io(io, LE)
+      @src_len.to_u32.to_io(io, LE)
 
       # get path length and write it
       path_len = @path.bytesize
@@ -504,10 +516,10 @@ module Zip
       # write file attributes (internal, external)
       # TODO
       0_u32.to_u16.to_io(io, LE)
-      0_u32.to_io(io, LE)
+      0_u32.to_u32.to_io(io, LE)
 
       # write local header offset
-      @pos.to_io(io, LE)
+      @pos.to_u32.to_io(io, LE)
 
       # write path field
       @path.to_s(io)
@@ -575,9 +587,6 @@ module Zip
       time    : Time = Time.now,
       comment : String = "",
     ) : UInt32
-      # cache input position
-      src_pos = @pos
-
       # make sure writer is still open
       assert_open
 
@@ -593,6 +602,9 @@ module Zip
 
       # add to list of entries
       @entries << entry
+
+      # cache offset
+      src_pos = @pos
 
       # write entry, update offset
       @pos += entry.to_s(@io)
