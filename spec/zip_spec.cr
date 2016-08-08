@@ -54,3 +54,8 @@ describe Zip::Writer do
     end
   end
 end
+
+describe Zip::Reader do
+  Zip.read(File.join(TEST_DIR, "test-empty.zip")) do |zip|
+  end
+end

@@ -4,7 +4,7 @@ require "zlib"
 #
 # TODO:
 # [x] date/time
-# [x] reader
+# [ ] reader
 # [ ] documentation
 # [ ] full tests
 # [ ] zip64
@@ -182,10 +182,25 @@ module Zip
 
   # TODO
   class Reader
-    def initialize(path : String)
+    getter? :closed, :sync_close
+
+    def initialize(
+      @io         : IO,
+      @pos        : UInt32 = 0,
+      @sync_close : Bool = false,
+    )
+      @closed = false
     end
 
-    def initialize(io : IO)
+    private def assert_open
+      raise Error.new("already closed") if closed?
+    end
+
+    def close
+      assert_open
+
+      @io.close if @sync_close
+      @closed = true
     end
   end
 
@@ -387,9 +402,9 @@ module Zip
       path_len = path.bytesize
 
       # check file path
-      raise "empty file path" if path_len == 0
-      raise "file path too long" if path_len >= UInt16::MAX
-      raise "file path contains leading slash" if path[0] == '/'
+      raise Error.new("empty file path") if path_len == 0
+      raise Error.new("file path too long") if path_len >= UInt16::MAX
+      raise Error.new("file path contains leading slash") if path[0] == '/'
 
       # write magic (u32), version needed (u16), flags (u16), and
       # compression method (u16)
@@ -431,7 +446,7 @@ module Zip
       when CompressionMethod::DEFLATE
         compress_deflate(@io, dst_io)
       else
-        raise "unsupported compression method"
+        raise Error.new("unsupported compression method: #{@method}")
       end
     end
 
@@ -543,6 +558,8 @@ module Zip
   end
 
   class Writer
+    getter? :closed
+
     def initialize(
       @io       : IO,
       @pos      : UInt32 = 0,
@@ -554,12 +571,8 @@ module Zip
       @src_pos = @pos
     end
 
-    def closed?
-      @closed
-    end
-
     private def assert_open
-      raise "already closed" if closed?
+      raise Error.new("already closed") if closed?
     end
 
     def bytes_written : UInt32
@@ -699,6 +712,7 @@ module Zip
     &cb     : Writer -> \
   ) : UInt32
     r = 0_u32
+
     begin
       w = Writer.new(io, pos, comment, version)
       cb.call(w)
@@ -722,6 +736,33 @@ module Zip
   ) : UInt32
     File.open(path, "wb") do |io|
       write(io, pos, comment, version, &cb)
+    end
+  end
+
+  def self.read(
+    io          : IO,
+    pos         : UInt32 = 0_u32,
+    sync_close  : Bool = false,
+    &cb         : Reader -> \
+  )
+    begin
+      r = Reader.new(io, pos, sync_close)
+      cb.call(r)
+    ensure
+      if r
+        r.close unless r.closed?
+      end
+    end
+
+    nil
+  end
+
+  def self.read(
+    path : String,
+    &cb  : Reader -> \
+  )
+    File.open(path, "rb") do |io|
+      read(io, 0_u32, true, &cb)
     end
   end
 end
