@@ -1257,8 +1257,20 @@ module Zip
 
       # close data memory io
       data_mem_io.close
+    end
 
-      nil
+    #
+    # Return the uncompressed size of this entry in bytes.
+    #
+    # Example:
+    #
+    #   Zip.read("foo.zip") do |zip|
+    #     size = zip["bar.txt"].size
+    #     puts "bar.txt is #{size} bytes."
+    #   end
+    #
+    def size : UInt32
+      @uncompressed_size
     end
 
     # :nodoc:
