@@ -5,7 +5,8 @@ require "zlib"
 # TODO:
 # [x] date/time
 # [x] reader (store and deflate only)
-# [ ] extras
+# [ ] extras (at least infozip)
+# [ ] directories
 # [ ] documentation
 # [ ] full tests
 # [ ] zip64
@@ -999,25 +1000,33 @@ module Zip
     # extra field (variable size)
 
     def read(dst_io : IO)
+      # create buffer for local header
+      buf = Bytes.new(30)
+
       # move to local header
       @io.pos = @pos
 
+      # read local header into buffer
+      @io.read(buf)
+
+      # create memory io from buffer
+      mem_io = MemoryIO.new(buf)
+
       # check magic header
-      magic = UInt32.from_io(@io, LE)
+      magic = UInt32.from_io(mem_io, LE)
       if magic != MAGIC[:file_header]
         raise Error.new("invalid file header magic")
       end
 
       # skip local header
-      # @io.pos = @pos + 30_u32 + @path_len + @extras_len
-      @io.pos = @pos + 26_u32
+      mem_io.pos = 26_u32
 
       # read local name and extras length
-      path_len = UInt16.from_io(@io, LE)
-      extras_len = UInt16.from_io(@io, LE)
+      path_len = UInt16.from_io(mem_io, LE)
+      extras_len = UInt16.from_io(mem_io, LE)
 
-      # puts "@path_len = #{@path_len}, @extras_len = #{@extras_len}"
-      # puts "path_len = #{path_len}, extras_len = #{extras_len}"
+      # close memory io
+      mem_io.close
 
       # skip name and extras
       @io.pos = @pos + 30_u32 + path_len + extras_len
