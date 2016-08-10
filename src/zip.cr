@@ -8,13 +8,13 @@ require "zlib"
 # [x] reader (store and deflate only)
 # [x] documentation
 # [-] extras (at least infozip)
-# [ ] convert datetime to Time
-# [ ] add size to Entry
+# [x] convert datetime to Time
+# [x] add size to Entry
+# [x] Version
 # [ ] directories
 # [ ] full tests
 # [ ] zip64
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
-# [ ] extra data
 # [ ] unix uids
 # [ ] bzip2/lzma support
 #
@@ -313,6 +313,78 @@ module Zip
 
       # return number of bytes written
       4_u32
+    end
+
+    #
+    # Convert given DOS datetime to a `Time` object.
+    #
+    private def from_dos_time(v : UInt32) : Time
+      Time.new(
+        year:   (v >> 25) + 1980,
+        month:  (v >> 21) & 0b0000_1111,
+        day:    (v >> 16) & 0b0001_1111,
+        hour:   (v >> 11) & 0b0001_1111,
+        minute: (v >> 5)  & 0b0011_1111,
+        second: (v << 1)  & 0b0011_1110,
+      )
+    end
+  end
+
+  #
+  # Version identifier used to identify the version needed to extract a
+  # given file and to indicate the format of the external file
+  # attributes.
+  #
+  # See section 4.4.3.2 of APPNOTE.TXT for version details.
+  #
+  class Version
+    #
+    # Version needed to extract this entry (4.4.3.2).
+    #
+    NEEDED = new(2, 0)
+
+    #
+    # Default version made by, if unspecified.
+    #
+    DEFAULT = new(0, 0)
+
+    #
+    # Create a version identifier from a major number, minor number, and
+    # optional compatability number.
+    #
+    def initialize(
+      @major  : Int32,
+      @minor  : Int32,
+      @compat : Int32 = 0
+    )
+    end
+
+    #
+    # Create a version identifier from a major number, minor number, and
+    # optional compatability number.
+    #
+    def initialize(v : UInt16)
+      @compat = v >> 8
+      @major = (v & 0xff) / 10
+      @minor = (v & 0xff) % 10
+    end
+
+    #
+    # Write version as string.
+    #
+    def to_s(io)
+      io << @major << "." << @minor
+    end
+
+    #
+    # Write version as 16-bit, little-endian integer and return number
+    # of bytes written.
+    #
+    def to_io(io)
+      (
+        ((@compat & 0xff) << 8) +
+        ((@major * 10) + (@minor % 10)) & 0xff
+      ).to_u16.to_io(io, LE)
     end
   end
 
@@ -616,11 +688,6 @@ module Zip
     include DeflateCompressionHelper
 
     #
-    # Version needed to extract this entry (4.4.3.2).
-    #
-    VERSION_NEEDED = 45_u32
-
-    #
     # Default flags for local and central header.
     #
     GENERAL_FLAGS = GeneralFlags.flags(FOOTER, EFS)
@@ -702,7 +769,7 @@ module Zip
       # write magic (u32), version needed (u16), flags (u16), and
       # compression method (u16)
       MAGIC[:file_header].to_u32.to_io(io, LE)
-      VERSION_NEEDED.to_u16.to_io(io, LE)
+      Version::NEEDED.to_io(io)
       GENERAL_FLAGS.to_u16.to_io(io, LE)
       method.to_u16.to_io(io, LE)
 
@@ -804,11 +871,6 @@ module Zip
     # :nodoc:
 
     #
-    # Version entry was made by, if unspecified.
-    #
-    CENTRAL_VERSION_MADE_BY = 0_u32
-
-    #
     # Write central directory data for this `WriterEntry` and return the
     # number of bytes written.
     #
@@ -817,11 +879,11 @@ module Zip
     #
     def write_central(
       io      : IO,
-      version : UInt32 = CENTRAL_VERSION_MADE_BY
+      version : Version = Version::DEFAULT,
     ) : UInt32
       MAGIC[:cdr_header].to_u32.to_io(io, LE)
-      version.to_u16.to_io(io, LE)
-      VERSION_NEEDED.to_u16.to_io(io, LE)
+      version.to_io(io)
+      Version::NEEDED.to_io(io)
       GENERAL_FLAGS.to_u16.to_io(io, LE)
       @method.to_u16.to_io(io, LE)
 
@@ -885,7 +947,7 @@ module Zip
       @io       : IO,
       @pos      : UInt32 = 0,
       @comment  : String = "",
-      @version  : UInt32 = 0,
+      @version  : Version = Version::DEFAULT,
     )
       @entries = [] of WriterEntry
       @closed = false
@@ -924,7 +986,7 @@ module Zip
       cdr_pos = @pos
 
       @entries.each do |entry|
-        @pos += entry.write_central(@io)
+        @pos += entry.write_central(@io, @version)
       end
 
       # write zip footer
@@ -1100,7 +1162,7 @@ module Zip
     io      : IO,
     pos     : UInt32 = 0_u32,
     comment : String = "",
-    version : UInt32 = 0_u32,
+    version : Version = Version::DEFAULT,
     &cb     : Writer -> \
   ) : UInt32
     r = 0_u32
@@ -1135,7 +1197,7 @@ module Zip
     path    : String,
     pos     : UInt32 = 0_u32,
     comment : String = "",
-    version : UInt32 = 0_u32,
+    version : Version = Version::DEFAULT,
     &cb     : Writer -> \
   ) : UInt32
     File.open(path, "wb") do |io|
@@ -1224,10 +1286,11 @@ module Zip
   #   end
   #
   class Entry
+    include TimeHelper
     include NoneCompressionHelper
     include DeflateCompressionHelper
 
-    getter :version, :version_needed, :flags, :method, :datetime, :crc,
+    getter :version, :version_needed, :flags, :method, :time, :crc,
            :compressed_size, :uncompressed_size, :path, :extras,
            :comment, :internal_attr, :external_attr, :pos
 
@@ -1291,7 +1354,7 @@ module Zip
       )
 
       # TODO: convert to Time object
-      @datetime = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @time = from_dos_time(UInt32.from_io(head_mem_io, LE)).as(Time)
 
       # read crc and lengths
       @crc = UInt32.from_io(head_mem_io, LE).as(UInt32)
