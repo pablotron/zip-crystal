@@ -64,6 +64,7 @@ module Zip
     file_footer:  0x08074b50_u32,
   }
 
+  # :nodoc:
   LE = IO::ByteFormat::LittleEndian
 
   #
@@ -167,21 +168,52 @@ module Zip
   #
   @[Flags]
   enum GeneralFlags
+    # encrypted using weak encryption
     ENCRYPTION
+
+    # compression method-specific flag
     COMPRESSION_OPTION_1
+
+    # compression method-specific flag
     COMPRESSION_OPTION_2
+
+    # this entry has a data descriptor footer
     FOOTER
+
+    # reserved flag
     RESERVED_4
+
+    # this entry is patch data
     PATCH
+
+    # this entry uses strong encryption
     STRONG_ENCRYPTION
+
+    # reserved flag
     RESERVED_7
+
+    # reserved flag
     RESERVED_8
+
+    # reserved flag
     RESERVED_9
+
+    # reserved flag
     RESERVED_10
+
+    # the file name and comment for this entry are UTF-8 encoded.
     EFS
+
+    # reserved flag
     RESERVED_12
+
+    # Some fields in the local header are masked (that is, empty).
     MASKED_VALUES
+
+    # reserved flag
     RESERVED_14
+
+    # reserved flag
     RESERVED_15
   end
 
@@ -189,28 +221,71 @@ module Zip
   # Compression methods.
   #
   enum CompressionMethod
-    NONE = 0            # Stored (no compression)
-    SHRUNK = 1          # Shrunk
-    REDUCED_1 = 2       # Reduced with compression factor 1
-    REDUCED_2 = 3       # Reduced with compression factor 2
-    REDUCED_3 = 4       # Reduced with compression factor 3
-    REDUCED_4 = 5       # Reduced with compression factor 4
-    IMPLODED = 6        # Imploded
-    # Tokenized = 7       # Reserved for Tokenizing compression algorithm
-    DEFLATE = 8         # Deflated
-    DEFLATE64 = 9       # Enhanced Deflating using Deflate64(tm)
-    TERSE_OLD = 10      # PKWARE Data Compression Library Imploding (old IBM TERSE)
-    # RESERVED_11 = 11    # Reserved by PKWARE
-    BZIP2 = 12          # BZIP2
-    # RESERVED_13 = 13  # Reserved by PKWARE
-    LZMA = 14           # LZMA (EFS)
-    # RESERVED_15 = 15    # Reserved by PKWARE
-    # RESERVED_16 = 16    # Reserved by PKWARE
-    # RESERVED_17 = 17    # Reserved by PKWARE
-    TERSE = 18          # IBM TERSE (new)
-    LZ77 = 19           # IBM LZ77 z Architecture (PFS)
-    WAVPACK = 97        # WavPack compressed data
-    PPMD = 98           # PPMd version I, Rev 1
+    # Stored (no compression)
+    NONE = 0
+
+    # Shrunk
+    SHRUNK = 1
+
+    # Reduced with compression factor 1
+    REDUCED_1 = 2
+
+    # Reduced with compression factor 2
+    REDUCED_2 = 3
+
+    # Reduced with compression factor 3
+    REDUCED_3 = 4
+
+    # Reduced with compression factor 4
+    REDUCED_4 = 5
+
+    # Imploded
+    IMPLODED = 6
+
+    # Reserved for Tokenizing compression algorithm
+    TOKENIZED = 7
+
+    # Deflated
+    DEFLATE = 8
+
+    # Enhanced Deflating using Deflate64(tm)
+    DEFLATE64 = 9
+
+    # PKWARE Data Compression Library Imploding (old IBM TERSE)
+    TERSE_OLD = 10
+
+    # Reserved by PKWARE
+    RESERVED_11 = 11
+
+    # BZIP2
+    BZIP2 = 12
+
+    # Reserved by PKWARE
+    RESERVED_13 = 13
+
+    # LZMA (EFS)
+    LZMA = 14
+
+    # Reserved by PKWARE
+    RESERVED_15 = 15
+
+    # Reserved by PKWARE
+    RESERVED_16 = 16
+
+    # Reserved by PKWARE
+    RESERVED_17 = 17
+
+    # IBM TERSE (new)
+    TERSE = 18
+
+    # IBM LZ77 z Architecture (PFS)
+    LZ77 = 19
+
+    # WavPack compressed data
+    WAVPACK = 97
+
+    # PPMd version I, Rev 1
+    PPMD = 98
   end
 
   #
