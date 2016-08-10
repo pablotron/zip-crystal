@@ -9,9 +9,11 @@ describe Zip do
   it "works" do
     Zip::VERSION.should eq(Zip::VERSION)
   end
-end
 
-describe Zip::Writer do
+  ###############
+  # write tests #
+  ###############
+
   it "creates an empty archive" do
     Zip.write(File.join(TEST_DIR, "test-empty.zip")) do |zip|
       # do nothing
@@ -53,9 +55,11 @@ describe Zip::Writer do
       zip.add_file("test.cr", TEST_FILE_PATH)
     end
   end
-end
 
-describe Zip::Reader do
+  ##############
+  # read tests #
+  ##############
+
   it "reads an archive" do
     Zip.read(File.join(TEST_DIR, "test-string.zip")) do |zip|
       zip.entries.each do |e|

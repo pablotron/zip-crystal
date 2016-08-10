@@ -1,6 +1,9 @@
 require "./zip/*"
 require "zlib"
 
+# https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+# http://www.onicos.com/staff/iz/formats/zip.html
+#
 #
 # TODO:
 # [x] date/time
@@ -1242,63 +1245,28 @@ module Zip
     end
   end
 
-  class Reader
-    getter? :closed, :sync_close
-    getter :zip
-
-    def initialize(
-      @io         : Source,
-      @pos        : UInt32 = 0_u32,
-      @sync_close : Bool = false,
-    )
-      @closed = false
-      @zip = Archive.new(@io)
-    end
-
-    private def assert_open
-      raise Error.new("already closed") if closed?
-    end
-
-    def close
-      assert_open
-
-      @io.close if @sync_close
-      @closed = true
-    end
-  end
-
   def self.read(
     io          : IO,
-    pos         : UInt32 = 0_u32,
-    sync_close  : Bool = false,
     &cb         : Archive -> \
-  )
-    begin
-      r = Reader.new(Source.new(io), pos, sync_close)
-      cb.call(r.zip)
-    ensure
-      if r
-        r.close unless r.closed?
-      end
-    end
-
-    nil
+  ) : Void
+    r = Archive.new(Source.new(io))
+    cb.call(r)
   end
 
   def self.read(
     slice : Bytes,
     &cb   : Archive -> \
-  )
+  ) : Void
     src = Source.new(MemoryIO.new(slice, false))
-    read(src, 0_u32, false, &cb)
+    read(src, &cb)
   end
 
   def self.read(
     path : String,
     &cb  : Archive -> \
-  )
+  ) : Void
     File.open(path, "rb") do |io|
-      read(io, 0_u32, true, &cb)
+      read(io, &cb)
     end
   end
 end
