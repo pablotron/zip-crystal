@@ -56,9 +56,40 @@ describe Zip::Writer do
 end
 
 describe Zip::Reader do
-  Zip.read(File.join(TEST_DIR, "test-string.zip")) do |zip|
-    zip.entries.each do |e|
-      pp e
+  it "reads an archive" do
+    Zip.read(File.join(TEST_DIR, "test-string.zip")) do |zip|
+      zip.entries.each do |e|
+        pp e.path
+      end
+    end
+  end
+
+  it "reads an archive created by an external program" do
+    Zip.read(File.join(TEST_DIR, "real.zip")) do |zip|
+      zip.each do |e|
+        pp e.path
+      end
+    end
+  end
+
+  it "reads an archive created by an external program" do
+    Zip.read(File.join(TEST_DIR, "real.zip")) do |zip|
+      zip.each do |e|
+        e.read(File.open("/dev/null", "wb"))
+      end
+    end
+  end
+
+  it "reads all an archive's compressed entries" do
+    Zip.read(File.join(TEST_DIR, "test-many.zip")) do |zip|
+      zip.each do |e|
+        pp e.path
+
+        io = MemoryIO.new
+        # e.read(STDOUT)
+        e.read(io)
+        io.close
+      end
     end
   end
 end

@@ -4,7 +4,8 @@ require "zlib"
 #
 # TODO:
 # [x] date/time
-# [ ] reader
+# [x] reader (store and deflate only)
+# [ ] extras
 # [ ] documentation
 # [ ] full tests
 # [ ] zip64
@@ -208,6 +209,14 @@ module Zip
       # return results
       { crc.to_u32, src_len, src_len }
     end
+
+    def decompress_none(src_io, dst_io, src_len, dst_len)
+      # TODO: verify CRC
+      IO.copy(src_io, dst_io, src_len)
+
+      # return number of bytes read
+      dst_len
+    end
   end
 
   module DeflateCompressionHelper
@@ -311,6 +320,133 @@ module Zip
         # exit loop if there is no remaining space
         break if zp.value.avail_out != 0
       end
+    end
+
+    def decompress_deflate(src_io, dst_io, src_len, dst_len)
+      crc = 0_u32
+
+      # create read and compress buffers
+      src_buf = Bytes.new(BUFFER_SIZE)
+      dst_buf = Bytes.new(BUFFER_SIZE)
+
+      # create deflate stream
+      z = LibZ::ZStream.new(
+        zalloc: ZALLOC_PROC,
+        zfree:  ZFREE_PROC,
+      )
+
+      # init stream
+      err = LibZ.inflateInit2(
+        pointerof(z),
+        -15, # raw deflate, window bits = 15
+        ZLIB_VERSION,
+        sizeof(LibZ::ZStream)
+      )
+
+      # check for error
+      if err != LibZ::Error::OK
+        # raise zlib error
+        raise Zlib::Error.new(err, z)
+      end
+
+      src_ofs, left = 0_u32, src_len
+      while left > 0
+        # calculate read buffer size
+        tmp_len = Math.min(BUFFER_SIZE - src_ofs, left)
+
+        # decriment remaining bytes
+        left -= tmp_len
+
+        # create read buffer (if necessary)
+        tmp_buf = (tmp_len < BUFFER_SIZE) ? src_buf[src_ofs, tmp_len] : src_buf
+
+        # read from source into buffer
+        if ((len = src_io.read(tmp_buf)) != tmp_len)
+          raise Error.new("truncated read (got #{len}, expected #{tmp_len})")
+        end
+
+        # calculate crc
+        tmp_crc = Zlib.crc32(tmp_buf)
+
+        # update crc
+        crc = if crc != 0
+          Zlib.crc32_combine(crc, tmp_crc, tmp_buf.size)
+        else
+          tmp_crc
+        end
+
+        # set zlib input buffer
+        z.next_in = src_buf.to_unsafe
+        z.avail_in = src_ofs + tmp_buf.size.to_u32
+
+        # read compressed data to dst io
+        read_compressed(dst_io, dst_buf, pointerof(z), false)
+      end
+
+      # set zlib input buffer to null
+      z.next_in = Pointer(UInt8).null
+      z.avail_in = 0_u32
+
+      # flush remaining data
+      read_compressed(dst_io, dst_buf, pointerof(z), true)
+
+      # free stream
+      LibZ.inflateEnd(pointerof(z))
+
+      # check crc
+      if false && crc != @crc
+        raise Error.new("crc mismatch (got #{crc}, expected #{@crc}")
+      end
+
+      # check input size
+      if z.total_in != src_len
+        raise Error.new("read length mismatch (got #{z.total_in}, expected #{src_len}")
+      end
+
+      # check output size
+      if z.total_out != dst_len
+        raise Error.new("write length mismatch (got #{z.total_out}, expected #{dst_len}")
+      end
+
+      # return number of bytes read
+      dst_len
+    end
+
+    private def read_compressed(
+      io    : IO,
+      buf   : Bytes,
+      zp    : Pointer(LibZ::ZStream),
+      flush : Bool,
+    )
+      zf = flush ? LibZ::Flush::FINISH : LibZ::Flush::NO_FLUSH
+
+      r, done = 0_u32, false
+      while zp.value.avail_in > 0
+        # set zlib output buffer
+        zp.value.next_out = buf.to_unsafe
+        zp.value.avail_out = buf.size.to_u32
+
+        # inflate data, check for error
+        case err = LibZ.inflate(zp, zf)
+        when LibZ::Error::DATA_ERROR,
+             LibZ::Error::NEED_DICT,
+             LibZ::Error::MEM_ERROR
+          # pp zp.value
+          raise Zlib::Error.new(err, zp.value)
+        when LibZ::Error::OK
+          # do nothing
+        when LibZ::Error::STREAM_END
+          done = true
+        end
+
+        if ((len = buf.size - zp.value.avail_out) > 0)
+          # write uncompressed data to io
+          io.write((len < buf.size) ? Bytes.new(zp.value.next_out, len) : buf)
+        end
+      end
+
+      # return number of unread bytes
+      nil
     end
   end
 
@@ -715,8 +851,6 @@ module Zip
     end
   end
 
-  # alias Source = IO::FileDescriptor | MemoryIO
-
   class Source
     include IO
 
@@ -751,11 +885,14 @@ module Zip
   # file comment (variable size)
 
   class Entry
+    include NoneCompressionHelper
+    include DeflateCompressionHelper
+
     getter :version, :version_needed, :flags, :method, :datetime, :crc,
            :compressed_size, :uncompressed_size, :path, :extras,
            :comment, :internal_attr, :external_attr, :pos
 
-    def initialize(io)
+    def initialize(@io : Source)
       # allocate slice for data
       mem = Bytes.new(46)
 
@@ -780,7 +917,9 @@ module Zip
 
       # read flags, method, and date
       @flags = UInt16.from_io(mem_io, LE).as(UInt16)
-      @method = UInt16.from_io(mem_io, LE).as(UInt16)
+      @method = CompressionMethod.new(
+        UInt16.from_io(mem_io, LE).as(UInt16).to_i32
+      )
       @datetime = UInt32.from_io(mem_io, LE).as(UInt32)
 
       @crc = UInt32.from_io(mem_io, LE).as(UInt32)
@@ -791,6 +930,8 @@ module Zip
       @path_len = UInt16.from_io(mem_io, LE).not_nil!.as(UInt16)
       @extras_len = UInt16.from_io(mem_io, LE).as(UInt16)
       @comment_len = UInt16.from_io(mem_io, LE).as(UInt16)
+
+      @disk_start = UInt16.from_io(mem_io, LE).as(UInt16)
 
       @internal_attr = UInt16.from_io(mem_io, LE).as(UInt16)
       @external_attr = UInt32.from_io(mem_io, LE).as(UInt32)
@@ -840,6 +981,56 @@ module Zip
       else
         ""
       end
+
+      nil
+    end
+
+    # local file header signature     4 bytes  (0x04034b50)
+    # version needed to extract       2 bytes
+    # general purpose bit flag        2 bytes
+    # compression method              2 bytes
+    # last mod file time              2 bytes
+    # last mod file date              2 bytes
+    # crc-32                          4 bytes
+    # compressed size                 4 bytes
+    # uncompressed size               4 bytes
+    # file name length                2 bytes
+    # extra field length              2 bytes
+    # file name (variable size)
+    # extra field (variable size)
+
+    def read(dst_io : IO)
+      # move to local header
+      @io.pos = @pos
+
+      # check magic header
+      magic = UInt32.from_io(@io, LE)
+      if magic != MAGIC[:file_header]
+        raise Error.new("invalid file header magic")
+      end
+
+      # skip local header
+      # @io.pos = @pos + 30_u32 + @path_len + @extras_len
+      @io.pos = @pos + 26_u32
+
+      # read local name and extras length
+      path_len = UInt16.from_io(@io, LE)
+      extras_len = UInt16.from_io(@io, LE)
+
+      # puts "@path_len = #{@path_len}, @extras_len = #{@extras_len}"
+      # puts "path_len = #{path_len}, extras_len = #{extras_len}"
+
+      # skip name and extras
+      @io.pos = @pos + 30_u32 + path_len + extras_len
+
+      case @method
+      when CompressionMethod::NONE
+        decompress_none(@io, dst_io, @compressed_size, @uncompressed_size)
+      when CompressionMethod::DEFLATE
+        decompress_deflate(@io, dst_io, @compressed_size, @uncompressed_size)
+      else
+        raise Error.new("unsupported method: #{@method}")
+      end
     end
   end
 
@@ -861,7 +1052,10 @@ module Zip
   # * .ZIP file comment       (variable size)
 
   class Archive
-    getter :entries
+    include Enumerable(Entry)
+    include Iterable
+
+    getter :entries, :comment
 
     def initialize(@io : Source)
       # initialize entries
@@ -938,6 +1132,40 @@ module Zip
       read_entries(@entries, @io, @cdr_pos, @cdr_len, @num_entries)
     end
 
+    #################################
+    # enumeration/iteration methods #
+    #################################
+
+    private def paths
+      @paths ||= @entries.reduce({} of String => Entry) do |r, e|
+        r[e.path] = e
+        r
+      end.as(Hash(String, Entry))
+    end
+
+    def [](path : String) : Entry
+      paths[path]
+    end
+
+    def []?(path : String) : Entry?
+      paths[path]?
+    end
+
+    def [](id : Int) : Entry
+      @entries[id]
+    end
+
+    def []?(id : Int) : Entry?
+      @entries[id]?
+    end
+
+    delegate each, to: @entries
+    delegate size, to: @entries
+
+    ###################
+    # loading methods #
+    ###################
+
     private def read_entries(
       entries     : Array(Entry),
       io          : Source,
@@ -954,7 +1182,10 @@ module Zip
       # read entries
       num_entries.times do
         # create new entry
-        entries << Entry.new(io)
+        entry = Entry.new(io)
+
+        # add to list of entries
+        entries << entry
 
         # check position
         if io.pos > end_cdr_pos
