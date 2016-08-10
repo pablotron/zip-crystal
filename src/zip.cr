@@ -1,16 +1,16 @@
 require "./zip/*"
 require "zlib"
 
-# https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-# http://www.onicos.com/staff/iz/formats/zip.html
-#
+# :nodoc:
 #
 # TODO:
 # [x] date/time
 # [x] reader (store and deflate only)
-# [ ] extras (at least infozip)
+# [x] documentation
+# [-] extras (at least infozip)
+# [ ] convert datetime to Time
+# [ ] add size to Entry
 # [ ] directories
-# [ ] documentation
 # [ ] full tests
 # [ ] zip64
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
@@ -18,10 +18,45 @@ require "zlib"
 # [ ] unix uids
 # [ ] bzip2/lzma support
 #
+# References:
+#   https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+#   http://www.onicos.com/staff/iz/formats/zip.html
+#
+# :nodoc:
 
+#
+# Library for reading and writing zip files.
+#
+# Examples:
+#
+# Reading from a zip file:
+#
+#   # create output MemoryIO
+#   mem_io = MemoryIO.new
+#
+#   # read from "foo.zip"
+#   Zip.read("foo.zip") do |zip|
+#     # read contents of "bar.txt" in "foo.zip" into mem_io
+#     zip["bar.txt"].read(mem_io)
+#   end
+#
+# Writing to a zip file:
+#
+#   # write to "foo.zip"
+#   Zip.write("foo.zip") do |zip|
+#     # create "bar.txt" with contents "hello!"
+#     zip.add("bar.txt", "hello!")
+#   end
+#
 module Zip
+  #
+  # Version of zip-crystal library.
+  #
   VERSION = "0.1.0"
 
+  #
+  # Magic numbers for various data in Zip stream.
+  #
   MAGIC = {
     cdr_header:   0x02014b50_u32,
     cdr_footer:   0x06054b50_u32,
@@ -31,9 +66,12 @@ module Zip
 
   LE = IO::ByteFormat::LittleEndian
 
-  # size of buffers, in bytes
+  #
+  # Size of internal buffers, in bytes.
+  #
   BUFFER_SIZE = 8192
 
+  # :nodoc:
   # 4.4.4 general purpose bit flag: (2 bytes)
   #
   # Bit 0: If set, indicates that the file is encrypted.
@@ -120,6 +158,12 @@ module Zip
   # Bit 14: Reserved by PKWARE.
   #
   # Bit 15: Reserved by PKWARE.
+  # :nodoc:
+
+  #
+  # General flags.
+  #
+  # Used by local header and central directory header.
   #
   @[Flags]
   enum GeneralFlags
@@ -141,6 +185,9 @@ module Zip
     RESERVED_15
   end
 
+  #
+  # Compression methods.
+  #
   enum CompressionMethod
     NONE = 0            # Stored (no compression)
     SHRUNK = 1          # Shrunk
@@ -166,11 +213,21 @@ module Zip
     PPMD = 98           # PPMd version I, Rev 1
   end
 
+  #
+  # Wrapper class for exceptions.
+  #
   class Error < Exception
   end
 
+  #
+  # Helper methods for converting to and from `Time` objects.
+  #
   module TimeHelper
-    def write_time(io : IO, time : Time) : UInt32
+    #
+    # Convert given `Time` to a DOS-style datetime, write the result to
+    # the given IO, and return the number of bytes written.
+    #
+    private def write_time(io : IO, time : Time) : UInt32
       year = Math.max(1980, time.year) - 1980
 
       # convert to dos timestamp
@@ -184,8 +241,11 @@ module Zip
     end
   end
 
+  #
+  # Helper methods for reading and writing uncompressed data.
+  #
   module NoneCompressionHelper
-    def compress_none(src_io, dst_io)
+    private def compress_none(src_io, dst_io)
       crc = 0_u32
 
       buf = Bytes.new(BUFFER_SIZE)
@@ -213,7 +273,7 @@ module Zip
       { crc.to_u32, src_len, src_len }
     end
 
-    def decompress_none(src_io, dst_io, src_len, dst_len)
+    private def decompress_none(src_io, dst_io, src_len, dst_len)
       # TODO: verify CRC
       IO.copy(src_io, dst_io, src_len)
 
@@ -222,6 +282,9 @@ module Zip
     end
   end
 
+  #
+  # Helper methods for compressing and decompressing deflated data.
+  #
   module DeflateCompressionHelper
     ZALLOC_PROC = LibZ::AllocFunc.new do |data, num_items, size|
       GC.malloc(num_items * size)
@@ -233,7 +296,10 @@ module Zip
 
     ZLIB_VERSION = LibZ.zlibVersion
 
-    def compress_deflate(src_io, dst_io)
+    #
+    # Read data from src_io, and write the compressed result to dst_io.
+    #
+    private def compress_deflate(src_io, dst_io)
       crc = 0_u32
 
       # create read and compress buffers
@@ -299,6 +365,9 @@ module Zip
       { crc.to_u32, z.total_in.to_u32, z.total_out.to_u32 }
     end
 
+    #
+    # Deflate data in ZStream and write it to given IO.
+    #
     private def write_compressed(
       io    : IO,
       buf   : Bytes,
@@ -325,7 +394,11 @@ module Zip
       end
     end
 
-    def decompress_deflate(src_io, dst_io, src_len, dst_len)
+    #
+    # Decompress src_len bytes of DEFLATEd data from src_io and write it
+    # to dst_io.
+    #
+    private def decompress_deflate(src_io, dst_io, src_len, dst_len)
       crc = 0_u32
 
       # create read and compress buffers
@@ -415,6 +488,9 @@ module Zip
       dst_len
     end
 
+    #
+    # Inflate compressed data from ZStream and write it to given IO.
+    #
     private def read_compressed(
       io    : IO,
       buf   : Bytes,
@@ -453,16 +529,33 @@ module Zip
     end
   end
 
+  #
+  # Internal class used to store files for `Writer` instance.
+  #
+  # You should not need to instantiate this class directly; it is called
+  # automatically by `Writer#add` and `Writer#add_file`.
+  #
   class WriterEntry
     include TimeHelper
     include NoneCompressionHelper
     include DeflateCompressionHelper
 
-    # version needed to extract and header flags (4.4.3.2)
-    # (used for local header and central header)
+    #
+    # Version needed to extract this entry (4.4.3.2).
+    #
     VERSION_NEEDED = 45_u32
+
+    #
+    # Default flags for local and central header.
+    #
     GENERAL_FLAGS = GeneralFlags.flags(FOOTER, EFS)
 
+    #
+    # Create a new WriterEntry instance.
+    #
+    # You should not need to call this method directly; it is called
+    # automatically by `Writer#add` and `Writer#add_file`.
+    #
     def initialize(
       @pos      : UInt32,
       @path     : String,
@@ -476,6 +569,13 @@ module Zip
       @dst_len = 0_u32
     end
 
+    #
+    # Write local file entry to IO and return the number of bytes
+    # written.
+    #
+    # You should not need to call this method directly; it is called
+    # automatically by `Writer#add` and `Writer#add_file`.
+    #
     def to_s(dst_io) : UInt32
       # write header
       r = write_header(dst_io, @path, @method, @time)
@@ -491,7 +591,7 @@ module Zip
       r
     end
 
-    #
+    # :nodoc:
     # local file header signature     4 bytes  (0x04034b50)
     # version needed to extract       2 bytes
     # general purpose bit flag        2 bytes
@@ -505,8 +605,11 @@ module Zip
     # extra field length              2 bytes
     # file name (variable size)
     # extra field (variable size)
-    #
+    # :nodoc:
 
+    #
+    # Write file header and return the number of bytes written.
+    #
     private def write_header(
       io      : IO,
       path    : String,
@@ -554,6 +657,9 @@ module Zip
       30_u32 + path_len + extras_len
     end
 
+    #
+    # Write file contents and return the number of bytes written.
+    #
     private def write_body(dst_io : IO)
       case @method
       when CompressionMethod::NONE
@@ -565,6 +671,7 @@ module Zip
       end
     end
 
+    # :nodoc:
     #  4.3.9  Data descriptor:
     #       MAGIC = 0x08074b50              4 bytes
     #       crc-32                          4 bytes
@@ -573,7 +680,12 @@ module Zip
     #
     # 4.3.9.3 Although not originally assigned a signature, the value
     # 0x08074b50 has commonly been adopted as a signature value
+    # :nodoc:
 
+    #
+    # Write file footer (data descriptor) and return the number of bytes
+    # written.
+    #
     private def write_footer(
       io      : IO,
       crc     : UInt32,
@@ -592,7 +704,7 @@ module Zip
       16_u32
     end
 
-    #
+    # :nodoc:
     # central file header signature   4 bytes  (0x02014b50)
     # version made by                 2 bytes
     # version needed to extract       2 bytes
@@ -614,10 +726,20 @@ module Zip
     # file name (variable size)
     # extra field (variable size)
     # file comment (variable size)
+    # :nodoc:
 
-    # TODO: version made by, if unspecified
+    #
+    # Version entry was made by, if unspecified.
+    #
     CENTRAL_VERSION_MADE_BY = 0_u32
 
+    #
+    # Write central directory data for this `WriterEntry` and return the
+    # number of bytes written.
+    #
+    # You should not need to call this method directly; it is called
+    # automatically by `Writer#close`.
+    #
     def write_central(
       io      : IO,
       version : UInt32 = CENTRAL_VERSION_MADE_BY
@@ -673,8 +795,17 @@ module Zip
   end
 
   class Writer
+    #
+    # Is this `Writer` closed?
+    #
     getter? :closed
 
+    #
+    # Create a new `Writer` object.
+    #
+    # You shouldn't need to instantiate this class directly; use
+    # `Zip.write()` instead.
+    #
     def initialize(
       @io       : IO,
       @pos      : UInt32 = 0,
@@ -690,11 +821,27 @@ module Zip
       raise Error.new("already closed") if closed?
     end
 
+    #
+    # Return the total number of bytes written so far.
+    #
+    # Example:
+    #
+    #   Zip.write("foo.zip") do |zip|
+    #     # add "bar.txt"
+    #     zip.add_file("bar.txt", "/path/to/bar.txt")
+    #
+    #     # print number of bytes written so far
+    #     puts "bytes written so far: #{zip.bytes_written}"
+    #   end
+    #
     def bytes_written : UInt32
       # return total number of bytes written
       @src_pos - @pos
     end
 
+    #
+    # Close this writer and return the total number of bytes written.
+    #
     def close
       assert_open
 
@@ -715,6 +862,21 @@ module Zip
       bytes_written
     end
 
+    #
+    # Read data from `IO` *io*, write it to *path* in archive, then
+    # return the number of bytes written.
+    #
+    # Example:
+    #
+    #   # create IO from "/path/to/bar.txt"
+    #   File.open("/path/to/bar.txt, "rb") do |io|
+    #     # write to "foo.zip"
+    #     Zip.write("foo.zip") do |zip|
+    #       # add "bar.txt" with contents of given IO
+    #       zip.add("bar.txt", io)
+    #     end
+    #   end
+    #
     def add(
       path    : String,
       io      : IO,
@@ -748,6 +910,18 @@ module Zip
       @pos - src_pos
     end
 
+    #
+    # Write *data* to *path* in archive and return number of bytes
+    # written.
+    #
+    # Example:
+    #
+    #   # write to "foo.zip"
+    #   Zip.write("foo.zip") do |zip|
+    #     # add "bar.txt" with contents "hello!"
+    #     zip.add("bar.txt", "hello!")
+    #   end
+    #
     def add(
       path    : String,
       data    : String | Bytes,
@@ -758,6 +932,18 @@ module Zip
       add(path, MemoryIO.new(data), method, time, comment)
     end
 
+    #
+    # Add local file *file_path* to archive as *path* and return number
+    # of bytes written.
+    #
+    # Example:
+    #
+    #   # write to "foo.zip"
+    #   Zip.write("foo.zip") do |zip|
+    #     # add local file "/path/to/bar.txt" as "bar.txt"
+    #     zip.add_file("bar.txt", "/path/to/bar.txt")
+    #   end
+    #
     def add_file(
       path      : String,
       file_path : String,
@@ -770,6 +956,7 @@ module Zip
       end
     end
 
+    # :nodoc:
     # 4.3.16  End of central directory record:
     #
     # * end of central dir signature    4 bytes  (0x06054b50)
@@ -786,6 +973,7 @@ module Zip
     #   the starting disk number        4 bytes
     # * .ZIP file comment length        2 bytes
     # * .ZIP file comment       (variable size)
+    # :nodoc:
 
     private def write_footer(
       cdr_pos : UInt32,
@@ -819,6 +1007,20 @@ module Zip
     end
   end
 
+  #
+  # Create a `Zip::Writer` for the output IO *io* and yield it to
+  # the given block.  Returns number of bytes written.
+  #
+  # Example:
+  #
+  #   # create output IO
+  #   File.open("foo.zip", "wb") do |io|
+  #     Zip.write(io) do |zip|
+  #       # add "bar.txt" with contents "hello!"
+  #       zip.add("bar.txt", "hello!")
+  #     end
+  #   end
+  #
   def self.write(
     io      : IO,
     pos     : UInt32 = 0_u32,
@@ -842,6 +1044,18 @@ module Zip
     r
   end
 
+  #
+  # Create a `Zip::Writer` for the output file *path* and yield it to
+  # the given block.  Returns number of bytes written.
+  #
+  # Example:
+  #
+  #   # create "foo.zip"
+  #   Zip.write("foo.zip") do |zip|
+  #     # add "bar.txt" with contents "hello!"
+  #     zip.add("bar.txt", "hello!")
+  #   end
+  #
   def self.write(
     path    : String,
     pos     : UInt32 = 0_u32,
@@ -854,9 +1068,22 @@ module Zip
     end
   end
 
+  #
+  # Base class for input source for `Archive` object.
+  #
+  # You should not need to instantiate this class directly; use
+  # `Zip.read()` instead.
+  #
   class Source
     include IO
 
+    #
+    # Instantiate a new `Source` from the given `IO::FileDescriptor` or
+    # `MemoryIO` object.
+    #
+    # You should not need to instantiate this class directly; use
+    # `Zip.read()` instead.
+    #
     def initialize(@io : IO::FileDescriptor | MemoryIO)
     end
 
@@ -865,28 +1092,20 @@ module Zip
     forward_missing_to @io
   end
 
-  # central file header signature   4 bytes  (0x02014b50)
-  # version made by                 2 bytes
-  # version needed to extract       2 bytes
-  # general purpose bit flag        2 bytes
-  # compression method              2 bytes
-  # last mod file time              2 bytes
-  # last mod file date              2 bytes
-  # crc-32                          4 bytes
-  # compressed size                 4 bytes
-  # uncompressed size               4 bytes
-  # file name length                2 bytes
-  # extra field length              2 bytes
-  # file comment length             2 bytes
-  # disk number start               2 bytes
-  # internal file attributes        2 bytes
-  # external file attributes        4 bytes
-  # relative offset of local header 4 bytes
   #
-  # file name (variable size)
-  # extra field (variable size)
-  # file comment (variable size)
-
+  # Extra data associated with `Entry`.
+  #
+  # You should not need to instantiate this class directly; use
+  # `Zip::Entry#extras` or `Zip::Entry#local_extras` instead.
+  #
+  # Example:
+  #
+  #   # open "foo.zip"
+  #   Zip.read("foo.zip") do |zip|
+  #     # get extra data associated with "bar.txt"
+  #     extras = zip["bar.txt"].extras
+  #   end
+  #
   class Extra
     property :code, :data
 
@@ -909,6 +1128,26 @@ module Zip
     end
   end
 
+  #
+  # File entry in `Archive`.
+  #
+  # Use `Zip.read()` to read a Zip archive, then `#[]` to fetch a
+  # specific archive entry.
+  #
+  # Example:
+  #
+  #   # create MemoryIO
+  #   io = MemoryIO.new
+  #
+  #   # open "foo.zip"
+  #   Zip.read("foo.zip") do |zip|
+  #     # get "bar.txt" entry from "foo.zip"
+  #     e = zip["bar.txt"]
+  #
+  #     # read contents of "bar.txt" into io
+  #     e.read(io)
+  #   end
+  #
   class Entry
     include NoneCompressionHelper
     include DeflateCompressionHelper
@@ -917,6 +1156,36 @@ module Zip
            :compressed_size, :uncompressed_size, :path, :extras,
            :comment, :internal_attr, :external_attr, :pos
 
+    # :nodoc:
+    # central file header signature   4 bytes  (0x02014b50)
+    # version made by                 2 bytes
+    # version needed to extract       2 bytes
+    # general purpose bit flag        2 bytes
+    # compression method              2 bytes
+    # last mod file time              2 bytes
+    # last mod file date              2 bytes
+    # crc-32                          4 bytes
+    # compressed size                 4 bytes
+    # uncompressed size               4 bytes
+    # file name length                2 bytes
+    # extra field length              2 bytes
+    # file comment length             2 bytes
+    # disk number start               2 bytes
+    # internal file attributes        2 bytes
+    # external file attributes        4 bytes
+    # relative offset of local header 4 bytes
+    #
+    # file name (variable size)
+    # extra field (variable size)
+    # file comment (variable size)
+    # :nodoc:
+
+    #
+    # Instantiate a new `Entry` object from the given IO.
+    #
+    # You should not need to call this method directly (use
+    # `Zip::Archive#[]` instead).
+    #
     def initialize(@io : Source)
       # allocate slice for header data
       head_buf = Bytes.new(46)
@@ -992,6 +1261,7 @@ module Zip
       nil
     end
 
+    # :nodoc:
     # local file header signature     4 bytes  (0x04034b50)
     # version needed to extract       2 bytes
     # general purpose bit flag        2 bytes
@@ -1005,8 +1275,26 @@ module Zip
     # extra field length              2 bytes
     # file name (variable size)
     # extra field (variable size)
+    # :nodoc:
 
-    def read(dst_io : IO)
+    #
+    # Write contents of `Entry` into given `IO`.
+    #
+    # Raises an `Error` if the file contents could not be read or if the
+    # compression method is unsupported.
+    #
+    # Example:
+    #
+    #   # open "output-bar.txt" for writing
+    #   File.open("output-bar.txt", "wb") do |io|
+    #     # open archive "./foo.zip"
+    #     Zip.read("foo.zip") do |zip|
+    #       # write contents of "bar.txt" to "output-bar.txt"
+    #       zip["foo.txt"].read(io)
+    #     end
+    #   end
+    #
+    def read(dst_io : IO) : UInt32
       # create buffer for local header
       buf = Bytes.new(30)
 
@@ -1046,8 +1334,30 @@ module Zip
       else
         raise Error.new("unsupported method: #{@method}")
       end
+
+      # return number of bytes written
+      @uncompressed_size
     end
 
+    #
+    # Returns an array of `Extra` attributes for this `Entry`.
+    #
+    # Zip archives can (and do) have separate `Extra` attributes
+    # associated with the file entry itself, and the file's entry in the
+    # Central Directory.
+    #
+    # The `#extras` method returns the `Extra` attributes from the
+    # file's entry in the Central Directory, and this method returns the
+    # `Extra` data from the file entry itself.
+    #
+    # Example:
+    #
+    #   # open "./foo.zip"
+    #   Zip.read("./foo.zip") do |zip|
+    #     # get array of local extra attributes from "bar.txt"
+    #     extras = zip["bar.txt"].local_extras
+    #   end
+    #
     def local_extras : Array(Extra)
       unless @local_extras
         # move to extras_len in local header
@@ -1068,6 +1378,9 @@ module Zip
       @local_extras.not_nil!
     end
 
+    #
+    # Returns an array of `Extra` attributes of length `len` from IO `io`.
+    #
     private def read_extras(io, len : UInt16) : Array(Extra)
       # read extras
       r = [] of Extra
@@ -1095,6 +1408,12 @@ module Zip
       r
     end
 
+    #
+    # Read String of length bytes from IO.
+    #
+    # Note: At the moment this assumes UTF-8 encoding, but we should
+    # make this configurable via a parameter to `#read()`.
+    #
     private def read_string(io, len : UInt16, name : String) : String
       if len > 0
         buf = Bytes.new(len)
@@ -1111,6 +1430,7 @@ module Zip
     end
   end
 
+  # :nodoc:
   # 4.3.16  End of central directory record:
   #
   # * end of central dir signature    4 bytes  (0x06054b50)
@@ -1127,13 +1447,24 @@ module Zip
   #   the starting disk number        4 bytes
   # * .ZIP file comment length        2 bytes
   # * .ZIP file comment       (variable size)
+  # :nodoc:
 
+  #
+  # Input archive.
+  #
+  # Use `Zip.read()` instead of instantiating this class directly.
+  #
   class Archive
     include Enumerable(Entry)
     include Iterable
 
     getter :entries, :comment
 
+    #
+    # Create new Zip::Archive from input Zip::Source.
+    #
+    # Use `Zip.read()` instead of calling this method directly.
+    #
     def initialize(@io : Source)
       # initialize entries
       # find footer and end of io
@@ -1213,6 +1544,9 @@ module Zip
     # enumeration/iteration methods #
     #################################
 
+    #
+    # Get hash of path -> Zip::Entries
+    #
     private def paths
       @paths ||= @entries.reduce({} of String => Entry) do |r, e|
         r[e.path] = e
@@ -1220,18 +1554,58 @@ module Zip
       end.as(Hash(String, Entry))
     end
 
+    #
+    # Get Zip::Entry by path.
+    #
+    # Example:
+    #
+    #   # get bar.txt and read it into memory io
+    #   io = MemoryIO.new
+    #   zip["bar.txt"].read(io)
+    #
     def [](path : String) : Entry
       paths[path]
     end
 
+    #
+    # Return Zip::Entry from path, or nil if it doesn't exist.
+    #
+    # Example:
+    #
+    #   # read bar.txt into memory io if it exists
+    #   if e = zip["bar.txt"]?
+    #     io = MemoryIO.new
+    #     e.read(io)
+    #   end
+    #
     def []?(path : String) : Entry?
       paths[path]?
     end
 
+    #
+    # Get Zip::Entry by number.
+    #
+    # Example:
+    #
+    #   # read third entry from archive into memory io
+    #   io = MemoryIO.new
+    #   zip[2].read(io)
+    #
     def [](id : Int) : Entry
       @entries[id]
     end
 
+    #
+    # Get Zip::Entry by number, or nil if it doesn't exist
+    #
+    # Example:
+    #
+    #   # read third entry from archive into memory io
+    #   if e = zip[2]
+    #     io = MemoryIO.new
+    #     e.read(io)
+    #   end
+    #
     def []?(id : Int) : Entry?
       @entries[id]?
     end
@@ -1243,6 +1617,9 @@ module Zip
     # loading methods #
     ###################
 
+    #
+    # Read CDR entries from given `Zip::Source`.
+    #
     private def read_entries(
       entries     : Array(Entry),
       io          : Source,
@@ -1271,6 +1648,9 @@ module Zip
       end
     end
 
+    #
+    # Find EOF and end of CDR for archive.
+    #
     private def find_footer_and_eof(io : Source)
       # seek to end of file
       io.seek(0, IO::Seek::End)
@@ -1321,6 +1701,21 @@ module Zip
     end
   end
 
+
+  #
+  # Read Zip::Archive from seekable IO instance and pass it to the given
+  # block.
+  #
+  # Example:
+  #
+  #   # create memory io for contents of "bar.txt"
+  #   io = MemoryIO.new
+  #
+  #   # read "bar.txt" from "./foo.zip"
+  #   Zip.read(File.open("./foo.zip", "rb")) do |zip|
+  #     zip["bar.txt"].read(io)
+  #   end
+  #
   def self.read(
     io          : IO,
     &cb         : Archive -> \
@@ -1329,6 +1724,20 @@ module Zip
     cb.call(r)
   end
 
+  #
+  # Read Zip::Archive from Slice and pass it to the given block.
+  #
+  # Example:
+  #
+  #   # create memory io for contents of "bar.txt"
+  #   io = MemoryIO.new
+  #
+  #   # extract "bar.txt" from zip archive in Slice some_slice and
+  #   # save it to MemoryIO
+  #   Zip.read(some_slice) do |zip|
+  #     zip["bar.txt"].read(io)
+  #   end
+  #
   def self.read(
     slice : Bytes,
     &cb   : Archive -> \
@@ -1337,6 +1746,19 @@ module Zip
     read(src, &cb)
   end
 
+  #
+  # Read Zip::Archive from File and pass it to the given block.
+  #
+  # Example:
+  #
+  #   # create memory io for contents of "bar.txt"
+  #   io = MemoryIO.new
+  #
+  #   # extract "bar.txt" from "./foo.zip" and save it to MemoryIO
+  #   Zip.read("./foo.zip") do |zip|
+  #     zip["bar.txt"].read(io)
+  #   end
+  #
   def self.read(
     path : String,
     &cb  : Archive -> \
