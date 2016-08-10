@@ -1280,23 +1280,33 @@ module Zip
         raise Error.new("too small for end of central directory")
       end
 
+      # create buffer and memory io around it
+      buf = Bytes.new(22)
+      mem_io = MemoryIO.new(buf, false)
+
       curr_pos = end_pos - 22
       while curr_pos >= 0
-        # seek to current position
+        # seek to current position and load possible cdr into buffer
         io.pos = curr_pos
+        io.read(buf)
+
+        # rewind memory io
+        mem_io.rewind
 
         # read what might be the end_cdr magic
-        maybe_end_magic = UInt32.from_io(io, LE)
+        maybe_end_magic = UInt32.from_io(mem_io, LE)
 
         if maybe_end_magic == MAGIC[:cdr_footer]
           # jump to archive commment len (maybe)
-          maybe_comment_len_pos = curr_pos + 20
-          io.pos = maybe_comment_len_pos
+          mem_io.pos = 20
 
           # get archive commment len (maybe)
-          maybe_comment_len = UInt16.from_io(io, LE)
+          maybe_comment_len = UInt16.from_io(mem_io, LE)
 
           if curr_pos + 22 + maybe_comment_len == end_pos
+            # close memio
+            mem_io.close
+
             # magic and comment line up: probably found end_cdr
             return { curr_pos, end_pos }
           end
