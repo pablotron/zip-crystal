@@ -945,8 +945,11 @@ module Zip
       @method = CompressionMethod.new(
         UInt16.from_io(head_mem_io, LE).as(UInt16).to_i32
       )
+
+      # TODO: convert to Time object
       @datetime = UInt32.from_io(head_mem_io, LE).as(UInt32)
 
+      # read crc and lengths
       @crc = UInt32.from_io(head_mem_io, LE).as(UInt32)
       @compressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
       @uncompressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
@@ -956,8 +959,10 @@ module Zip
       @extras_len = UInt16.from_io(head_mem_io, LE).as(UInt16)
       @comment_len = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
+      # read starting disk
       @disk_start = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
+      # read attributes and position
       @internal_attr = UInt16.from_io(head_mem_io, LE).as(UInt16)
       @external_attr = UInt32.from_io(head_mem_io, LE).as(UInt32)
       @pos = UInt32.from_io(head_mem_io, LE).as(UInt32)
@@ -966,6 +971,7 @@ module Zip
       head_mem_io.close
 
       # create and populate data buffer
+      # (holds path, extras, and comment data)
       data_len = @path_len + @extras_len + @comment_len
       data_buf = Bytes.new(data_len)
       if io.read(data_buf) != data_len
@@ -1011,7 +1017,7 @@ module Zip
       @io.read(buf)
 
       # create memory io from buffer
-      mem_io = MemoryIO.new(buf)
+      mem_io = MemoryIO.new(buf, false)
 
       # check magic header
       magic = UInt32.from_io(mem_io, LE)
