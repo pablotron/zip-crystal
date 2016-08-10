@@ -887,6 +887,28 @@ module Zip
   # extra field (variable size)
   # file comment (variable size)
 
+  class Extra
+    property :code, :data
+
+    def initialize(@code : UInt16, @data : Bytes)
+    end
+
+    def initialize(io)
+      @code = UInt16.from_io(io, LE).as(UInt16)
+      size = UInt16.from_io(io, LE).as(UInt16)
+      @data = Bytes.new(size)
+      io.read(@data)
+    end
+
+    delegate size, to: @data
+
+    def to_s(io) : UInt32
+      @code.to_s(io, LE)
+      @data.size.to_u16.to_s(io, LE)
+      @data.to_s(io)
+    end
+  end
+
   class Entry
     include NoneCompressionHelper
     include DeflateCompressionHelper
@@ -896,94 +918,70 @@ module Zip
            :comment, :internal_attr, :external_attr, :pos
 
     def initialize(@io : Source)
-      # allocate slice for data
-      mem = Bytes.new(46)
+      # allocate slice for header data
+      head_buf = Bytes.new(46)
 
       # read entry
-      if ((len = io.read(mem)) != 46)
-        raise Error.new("couldn't read full CDR entry (#{len} != 46)")
+      if ((head_len = io.read(head_buf)) != 46)
+        raise Error.new("couldn't read full CDR entry (#{head_len} != 46)")
       end
 
       # create memory io for slice
-      mem_io = MemoryIO.new(mem, false)
+      head_mem_io = MemoryIO.new(head_buf, false)
 
-      magic = UInt32.from_io(mem_io, LE)
+      magic = UInt32.from_io(head_mem_io, LE)
       if magic != MAGIC[:cdr_header]
         raise Error.new("invalid CDR header magic")
       end
 
       # read versions
-      @version = UInt16.from_io(mem_io, LE).as(UInt16)
-      @version_needed = UInt16.from_io(mem_io, LE).as(UInt16)
+      @version = UInt16.from_io(head_mem_io, LE).as(UInt16)
+      @version_needed = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
       # TODO: check versions
 
       # read flags, method, and date
-      @flags = UInt16.from_io(mem_io, LE).as(UInt16)
+      @flags = UInt16.from_io(head_mem_io, LE).as(UInt16)
       @method = CompressionMethod.new(
-        UInt16.from_io(mem_io, LE).as(UInt16).to_i32
+        UInt16.from_io(head_mem_io, LE).as(UInt16).to_i32
       )
-      @datetime = UInt32.from_io(mem_io, LE).as(UInt32)
+      @datetime = UInt32.from_io(head_mem_io, LE).as(UInt32)
 
-      @crc = UInt32.from_io(mem_io, LE).as(UInt32)
-      @compressed_size = UInt32.from_io(mem_io, LE).as(UInt32)
-      @uncompressed_size = UInt32.from_io(mem_io, LE).as(UInt32)
+      @crc = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @compressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @uncompressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
 
       # read lengths
-      @path_len = UInt16.from_io(mem_io, LE).not_nil!.as(UInt16)
-      @extras_len = UInt16.from_io(mem_io, LE).as(UInt16)
-      @comment_len = UInt16.from_io(mem_io, LE).as(UInt16)
+      @path_len = UInt16.from_io(head_mem_io, LE).not_nil!.as(UInt16)
+      @extras_len = UInt16.from_io(head_mem_io, LE).as(UInt16)
+      @comment_len = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
-      @disk_start = UInt16.from_io(mem_io, LE).as(UInt16)
+      @disk_start = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
-      @internal_attr = UInt16.from_io(mem_io, LE).as(UInt16)
-      @external_attr = UInt32.from_io(mem_io, LE).as(UInt32)
-      @pos = UInt32.from_io(mem_io, LE).as(UInt32)
+      @internal_attr = UInt16.from_io(head_mem_io, LE).as(UInt16)
+      @external_attr = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @pos = UInt32.from_io(head_mem_io, LE).as(UInt32)
 
       # close memory io
-      mem_io.close
+      head_mem_io.close
 
-      # read path
-      @path = if @path_len > 0
-        buf = Bytes.new(@path_len)
-
-        if io.read(buf) != @path_len
-          raise Error.new("couldn't read CDR entry name")
-        end
-
-        # TODO: handle encoding
-        String.new(buf)
-      else
-        ""
+      # create and populate data buffer
+      data_len = @path_len + @extras_len + @comment_len
+      data_buf = Bytes.new(data_len)
+      if io.read(data_buf) != data_len
+        raise Error.new("couldn't read entry CDR name, extras, and comment")
       end
 
-      # read extras
-      @extras = if @extras_len > 0
-        buf = Bytes.new(@extras_len)
+      # create data memory io
+      data_mem_io = MemoryIO.new(data_buf)
 
-        if io.read(buf) != @extras_len
-          raise Error.new("couldn't read CDR entry extras")
-        end
+      # read path, extras, and comment from data memory io
+      @path = read_string(data_mem_io, @path_len, "name") as String
+      @extras = read_extras(data_mem_io, @extras_len) as Array(Extra)
+      @comment = read_string(data_mem_io, @comment_len, "comment") as String
 
-        # TODO: decode extras?
-        buf
-      else
-        # TODO
-        Bytes.new(0)
-      end
-
-      # read comment
-      @comment = if @comment_len > 0
-        buf = Bytes.new(@comment_len)
-        if io.read(buf) != @comment_len
-          raise Error.new("couldn't read CDR entry comment")
-        end
-
-        # TODO: handle encoding
-        String.new(buf)
-      else
-        ""
-      end
+      # close data memory io
+      data_mem_io.close
 
       nil
     end
@@ -1041,6 +1039,68 @@ module Zip
         decompress_deflate(@io, dst_io, @compressed_size, @uncompressed_size)
       else
         raise Error.new("unsupported method: #{@method}")
+      end
+    end
+
+    def local_extras : Array(Extra)
+      unless @local_extras
+        # move to extras_len in local header
+        @io.pos = @pos + 26_u32
+
+        # read name and extras lengths
+        name_len = UInt16.from_io(@io, LE)
+        extras_len = UInt16.from_io(@io, LE)
+
+        # move to extras_len in local header
+        @io.pos = @pos + 30_u32 + name_len
+
+        # read local extras
+        @local_extras = read_extras(@io, extras_len) as Array(Extra)
+      end
+
+      # return results
+      @local_extras.not_nil!
+    end
+
+    private def read_extras(io, len : UInt16) : Array(Extra)
+      # read extras
+      r = [] of Extra
+
+      if len > 0
+        # create buffer of extras data
+        buf = Bytes.new(len)
+        if io.read(buf) != len
+          raise Error.new("couldn't read CDR entry extras")
+        end
+
+        # create memory io over buffer
+        mem_io = MemoryIO.new(buf, false)
+
+        # read extras from io
+        while mem_io.pos != mem_io.size
+          r << Extra.new(mem_io)
+        end
+
+        # close memory io
+        mem_io.close
+      end
+
+      # return results
+      r
+    end
+
+    private def read_string(io, len : UInt16, name : String) : String
+      if len > 0
+        buf = Bytes.new(len)
+
+        if io.read(buf) != len
+          raise Error.new("couldn't read CDR entry #{name}")
+        end
+
+        # FIXME: should handle encoding here?
+        String.new(buf)
+      else
+        ""
       end
     end
   end

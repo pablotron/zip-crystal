@@ -80,6 +80,9 @@ describe Zip do
     Zip.read(File.join(TEST_DIR, "real.zip")) do |zip|
       zip.each do |e|
         e.read(File.open("/dev/null", "wb"))
+
+        # p e.extras.map { |e| { e.code, e.size } }
+        # p e.local_extras.map { |e| { e.code, e.size } }
       end
     end
   end
