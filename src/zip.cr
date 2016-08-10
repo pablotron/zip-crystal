@@ -162,7 +162,6 @@ module Zip
     PPMD = 98           # PPMd version I, Rev 1
   end
 
-  # FIXME: should this have a better class?
   class Error < Exception
   end
 
