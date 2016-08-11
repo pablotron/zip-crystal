@@ -118,22 +118,22 @@
 
 <p>Reading from a zip file:</p>
 
-<p># create output MemoryIO
-mem_io = MemoryIO.new</p>
+<pre><code><span class="c"># create output MemoryIO</span>
+mem_io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
 
-<p># read from "foo.zip"
-Zip.read("foo.zip") do |zip|
-# read contents of "bar.txt" in "foo.zip" into mem_io
-zip["bar.txt"].read(mem_io)
-end</p>
+<span class="c"># read from &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># read contents of &quot;bar.txt&quot; in &quot;foo.zip&quot; into mem_io</span>
+  zip[<span class="s">&quot;bar.txt&quot;</span>].read(mem_io)
+<span class="k">end</span></code></pre>
 
 <p>Writing to a zip file:</p>
 
-<p># write to "foo.zip"
-Zip.write("foo.zip") do |zip|
-# create "bar.txt" with contents "hello!"
-zip.add("bar.txt", "hello!")
-end</p>
+<pre><code><span class="c"># write to &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.write(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># create &quot;bar.txt&quot; with contents &quot;hello&#33;&quot;</span>
+  zip.add(<span class="s">&quot;bar.txt&quot;</span>, <span class="s">&quot;hello&#33;&quot;</span>)
+<span class="k">end</span></code></pre>
 
 
 
@@ -254,14 +254,14 @@ end</p>
 
 <p>Example:</p>
 
-<p># create memory io for contents of "bar.txt"
-io = MemoryIO.new</p>
+<pre><code><span class="c"># create memory io for contents of &quot;bar.txt&quot;</span>
+io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
 
-<p># extract "bar.txt" from zip archive in Slice some_slice and
-# save it to MemoryIO
-Zip.read(some_slice) do |zip|
-zip["bar.txt"].read(io)
-end</p></div>
+<span class="c"># extract &quot;bar.txt&quot; from zip archive in Slice some_slice and</span>
+<span class="c"># save it to MemoryIO</span>
+<span class="t">Zip</span>.read(some_slice) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -281,13 +281,13 @@ end</p></div>
 
 <p>Example:</p>
 
-<p># create memory io for contents of "bar.txt"
-io = MemoryIO.new</p>
+<pre><code><span class="c"># create memory io for contents of &quot;bar.txt&quot;</span>
+io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
 
-<p># extract "bar.txt" from "./foo.zip" and save it to MemoryIO
-Zip.read("./foo.zip") do |zip|
-zip["bar.txt"].read(io)
-end</p></div>
+<span class="c"># extract &quot;bar.txt&quot; from &quot;foo.zip&quot; and save it to MemoryIO</span>
+<span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -308,13 +308,13 @@ block.</p>
 
 <p>Example:</p>
 
-<p># create memory io for contents of "bar.txt"
-io = MemoryIO.new</p>
+<pre><code><span class="c"># create memory io for contents of &quot;bar.txt&quot;</span>
+io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
 
-<p># read "bar.txt" from "./foo.zip"
-Zip.read(File.open("./foo.zip", "rb")) do |zip|
-zip["bar.txt"].read(io)
-end</p></div>
+<span class="c"># read &quot;bar.txt&quot; from &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.read(<span class="t">File</span>.open(<span class="s">&quot;foo.zip&quot;</span>, <span class="s">&quot;rb&quot;</span>)) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -335,13 +335,13 @@ the given block.  Returns number of bytes written.</p>
 
 <p>Example:</p>
 
-<p># create output IO
-File.open("foo.zip", "wb") do |io|
-Zip.write(io) do |zip|
-# add "bar.txt" with contents "hello!"
-zip.add("bar.txt", "hello!")
-end
-end</p></div>
+<pre><code><span class="c"># create output IO</span>
+<span class="t">File</span>.open(<span class="s">&quot;foo.zip&quot;</span>, <span class="s">&quot;wb&quot;</span>) <span class="k">do</span> <span class="o">|</span>io<span class="o">|</span>
+  <span class="t">Zip</span>.write(io) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+    <span class="c"># add &quot;bar.txt&quot; with contents &quot;hello&#33;&quot;</span>
+    zip.add(<span class="s">&quot;bar.txt&quot;</span>, <span class="s">&quot;hello&#33;&quot;</span>)
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -362,11 +362,11 @@ the given block.  Returns number of bytes written.</p>
 
 <p>Example:</p>
 
-<p># create "foo.zip"
-Zip.write("foo.zip") do |zip|
-# add "bar.txt" with contents "hello!"
-zip.add("bar.txt", "hello!")
-end</p></div>
+<pre><code><span class="c"># create &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.write(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># add &quot;bar.txt&quot; with contents &quot;hello&#33;&quot;</span>
+  zip.add(<span class="s">&quot;bar.txt&quot;</span>, <span class="s">&quot;hello&#33;&quot;</span>)
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>

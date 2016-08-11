@@ -121,11 +121,11 @@
 
 <p>Example:</p>
 
-<p># open "foo.zip"
-Zip.read("foo.zip") do |zip|
-# get extra data associated with "bar.txt"
-extras = zip["bar.txt"].extras
-end</p>
+<pre><code><span class="c"># open &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># get extra data associated with &quot;bar.txt&quot;</span>
+  extras <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>].extras
+<span class="k">end</span></code></pre>
 
 
 

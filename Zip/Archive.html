@@ -298,9 +298,9 @@
 
 <p>Example:</p>
 
-<p># get bar.txt and read it into memory io
-io = MemoryIO.new
-zip["bar.txt"].read(io)</p></div>
+<pre><code><span class="c"># get bar.txt and read it into memory io</span>
+io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
+zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)</code></pre></div>
       
       <br/>
       <div>
@@ -320,9 +320,9 @@ zip["bar.txt"].read(io)</p></div>
 
 <p>Example:</p>
 
-<p># read third entry from archive into memory io
-io = MemoryIO.new
-zip[2].read(io)</p></div>
+<pre><code><span class="c"># read third entry from archive into memory io</span>
+io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
+zip[<span class="n">2</span>].read(io)</code></pre></div>
       
       <br/>
       <div>
@@ -342,11 +342,11 @@ zip[2].read(io)</p></div>
 
 <p>Example:</p>
 
-<p># read third entry from archive into memory io
-if e = zip[2]
-io = MemoryIO.new
-e.read(io)
-end</p></div>
+<pre><code><span class="c"># read third entry from archive into memory io</span>
+<span class="k">if</span> e <span class="o">=</span> zip[<span class="n">2</span>]?
+  io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
+  e.read(io)
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -366,11 +366,11 @@ end</p></div>
 
 <p>Example:</p>
 
-<p># read bar.txt into memory io if it exists
-if e = zip["bar.txt"]?
-io = MemoryIO.new
-e.read(io)
-end</p></div>
+<pre><code><span class="c"># read bar.txt into memory io if it exists</span>
+<span class="k">if</span> e <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>]?
+  io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
+  e.read(io)
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>

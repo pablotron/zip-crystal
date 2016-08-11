@@ -121,18 +121,17 @@ specific archive entry.</p>
 
 <p>Example:</p>
 
-<p># create MemoryIO
-io = MemoryIO.new</p>
+<pre><code><span class="c"># create MemoryIO</span>
+io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
 
-<p># open "foo.zip"
-Zip.read("foo.zip") do |zip|
-# get "bar.txt" entry from "foo.zip"
-e = zip["bar.txt"]</p>
+<span class="c"># open &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># get &quot;bar.txt&quot; entry from &quot;foo.zip&quot;</span>
+  e <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>]
 
-<pre><code><span class="c"># read contents of &quot;bar.txt&quot; into io</span>
-e.read(io)</code></pre>
-
-<p>end</p>
+  <span class="c"># read contents of &quot;bar.txt&quot; into io</span>
+  e.read(io)
+<span class="k">end</span></code></pre>
 
 
 
@@ -463,11 +462,11 @@ file's entry in the Central Directory, and this method returns the
 
 <p>Example:</p>
 
-<p># open "./foo.zip"
-Zip.read("./foo.zip") do |zip|
-# get array of local extra attributes from "bar.txt"
-extras = zip["bar.txt"].local_extras
-end</p></div>
+<pre><code><span class="c"># open &quot;./foo.zip&quot;</span>
+<span class="t">Zip</span>.read(<span class="s">&quot;./foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># get array of local extra attributes from &quot;bar.txt&quot;</span>
+  extras <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>].local_extras
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -532,14 +531,14 @@ compression method is unsupported.</p>
 
 <p>Example:</p>
 
-<p># open "output-bar.txt" for writing
-File.open("output-bar.txt", "wb") do |io|
-# open archive "./foo.zip"
-Zip.read("foo.zip") do |zip|
-# write contents of "bar.txt" to "output-bar.txt"
-zip["foo.txt"].read(io)
-end
-end</p></div>
+<pre><code><span class="c"># open &quot;output-bar.txt&quot; for writing</span>
+<span class="t">File</span>.open(<span class="s">&quot;output-bar.txt&quot;</span>, <span class="s">&quot;wb&quot;</span>) <span class="k">do</span> <span class="o">|</span>io<span class="o">|</span>
+  <span class="c"># open archive &quot;./foo.zip&quot;</span>
+  <span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+    <span class="c"># write contents of &quot;bar.txt&quot; to &quot;output-bar.txt&quot;</span>
+    zip[<span class="s">&quot;foo.txt&quot;</span>].read(io)
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -559,10 +558,10 @@ end</p></div>
 
 <p>Example:</p>
 
-<p>Zip.read("foo.zip") do |zip|
-size = zip["bar.txt"].size
-puts "bar.txt is #{size} bytes."
-end</p></div>
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  size <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>].size
+  puts <span class="s">&quot;bar.txt is </span><span class="i">#{</span></span>size<span class="s"><span class="i">}</span> bytes.&quot;</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
