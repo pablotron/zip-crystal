@@ -16,6 +16,7 @@ require "zlib"
 # [ ] zip64
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
 # [ ] unix uids
+# [ ] encryption
 # [ ] bzip2/lzma support
 #
 # References:
@@ -340,6 +341,12 @@ module Zip
   #
   # See section 4.4.3.2 of APPNOTE.TXT for version details.
   #
+  # Example:
+  #
+  #     # create version and print it out
+  #     version = Zip::Version.new(5, 0)
+  #     puts "version = #{version}"
+  #
   class Version
     #
     # Version needed to extract this entry (4.4.3.2).
@@ -355,6 +362,12 @@ module Zip
     # Create a version identifier from a major number, minor number, and
     # optional compatability number.
     #
+    # Example:
+    #
+    #     # create version and print it out
+    #     version = Zip::Version.new(5, 0)
+    #     puts "version = #{version}"
+    #
     def initialize(
       @major  : Int32,
       @minor  : Int32,
@@ -366,6 +379,9 @@ module Zip
     # Create a version identifier from a major number, minor number, and
     # optional compatability number.
     #
+    # You shouldn't need to call this constructor directly; it is used
+    # by internal classes.
+    #
     def initialize(v : UInt16)
       @compat = v >> 8
       @major = (v & 0xff) / 10
@@ -375,6 +391,10 @@ module Zip
     #
     # Write version as string.
     #
+    #     # create version and print it out
+    #     version = Zip::Version.new(5, 0)
+    #     puts "version = #{version}"
+    #
     def to_s(io)
       io << @major << "." << @minor
     end
@@ -382,6 +402,9 @@ module Zip
     #
     # Write version as 16-bit, little-endian integer and return number
     # of bytes written.
+    #
+    # You shouldn't need to call this method directly; it is used by
+    # internal classes.
     #
     def to_io(io)
       (
