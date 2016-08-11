@@ -12,8 +12,12 @@ require "zlib"
 # [x] add size to Entry
 # [x] Version
 # [x] directories
-# [ ] full tests
-# [ ] zip64
+# [-] full tests
+# [-] zip64
+#   [x] add zip64 parameter
+#   [ ] add zip64 extras when writing header and central
+#   [ ] update sizes to be u64
+#   [ ] choose zip64 default for arbitrary IOs (right now it is false)
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
 # [ ] unix uids
 # [ ] encryption
@@ -718,8 +722,11 @@ module Zip
         @comment  : String = "",
         @flags    : GeneralFlags = GeneralFlags.flags(),
         @external : UInt32 = 0_u32,
+        @zip64    : Bool = false,
       )
         @crc = 0_u32
+
+        # FIXME: these should be u64, at least for zip64
         @src_len = 0_u32
         @dst_len = 0_u32
       end
@@ -733,14 +740,14 @@ module Zip
       #
       def to_s(dst_io) : UInt32
         # write header
-        r = write_header(dst_io, @flags, @path, @method, @time)
+        r = write_header(dst_io, @flags, @path, @method, @time, @zip64)
 
         # write body
         @crc, @src_len, @dst_len = write_body(dst_io)
         r += @dst_len
 
         # write footer
-        r += write_footer(dst_io, @crc, @src_len, @dst_len)
+        r += write_footer(dst_io, @crc, @src_len, @dst_len, @zip64)
 
         # return number of bytes written
         r
@@ -771,6 +778,7 @@ module Zip
         path    : String,
         method  : CompressionMethod,
         time    : Time,
+        zip64   : Bool,
       ) : UInt32
         # get path length, in bytes
         path_len = path.bytesize
@@ -820,6 +828,7 @@ module Zip
         crc     : UInt32,
         src_len : UInt32,
         dst_len : UInt32,
+        zip64   : Bool,
       ) : UInt32
 
       # :nodoc:
@@ -934,6 +943,9 @@ module Zip
         method  : CompressionMethod = CompressionMethod::DEFLATE,
         time    : Time = Time.now,
         comment : String = "",
+
+        # FIXME: should this be true for unknown io?
+        zip64   : Bool = false,
       )
         super(
           pos:      pos,
@@ -943,6 +955,7 @@ module Zip
           comment:  comment,
           flags:    FLAGS,
           external: 0_u32,
+          zip64:    zip64,
         )
       end
 
@@ -980,6 +993,7 @@ module Zip
         crc     : UInt32,
         src_len : UInt32,
         dst_len : UInt32,
+        zip64   : Bool,
       ) : UInt32
         # write magic (u32)
         MAGIC[:file_footer].to_u32.to_io(io, LE)
@@ -1026,6 +1040,7 @@ module Zip
           comment:  comment,
           flags:    FLAGS,
           external: 1_u32,
+          zip64:    false,
         )
       end
 
@@ -1038,6 +1053,7 @@ module Zip
         crc     : UInt32,
         src_len : UInt32,
         dst_len : UInt32,
+        zip64   : Bool,
       ) : UInt32
         0_u32
       end
@@ -1156,6 +1172,9 @@ module Zip
       method  : CompressionMethod = CompressionMethod::DEFLATE,
       time    : Time = Time.now,
       comment : String = "",
+
+      # FIXME: should this be true for arbitrary IO?
+      zip64   : Bool = false,
     ) : UInt32
       add_entry(Writers::FileEntry.new(
         pos:      @pos,
@@ -1164,6 +1183,7 @@ module Zip
         method:   method,
         time:     time,
         comment:  comment,
+        zip64:    zip64,
       ))
     end
 
@@ -1186,7 +1206,8 @@ module Zip
       time    : Time = Time.now,
       comment : String = "",
     ) : UInt32
-      add(path, MemoryIO.new(data), method, time, comment)
+      zip64 = (data.size >= UInt32::MAX)
+      add(path, MemoryIO.new(data), method, time, comment, zip64)
     end
 
     #
@@ -1234,7 +1255,8 @@ module Zip
       comment   : String = "",
     ) : UInt32
       File.open(file_path, "rb") do |io|
-        add(path, io, method, time, comment)
+        zip64 = (io.stat.size >= UInt32::MAX)
+        add(path, io, method, time, comment, zip64)
       end
     end
 
