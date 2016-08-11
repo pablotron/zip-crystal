@@ -1412,9 +1412,175 @@ module Zip
     include NoneCompressionHelper
     include DeflateCompressionHelper
 
-    getter :version, :version_needed, :flags, :method, :time, :crc,
-           :compressed_size, :uncompressed_size, :path, :extras,
-           :comment, :internal_attr, :external_attr, :pos
+    #
+    # Get `Version` used to generate this `Entry`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print version used for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} version used: #{e.version}"
+    #       end
+    #     end
+    #
+    getter :version
+
+    #
+    # Get `Version` needed to generate this `Entry`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print version needed to extract each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} version needed: #{e.version_needed}"
+    #       end
+    #     end
+    #
+    getter :version_needed
+
+    #
+    # Get `GeneralFlags` for this `Entry`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print flags for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} flags: #{e.flags}"
+    #       end
+    #     end
+    #
+    getter :flags
+
+    #
+    # Get `CompressionMethod` for this `Entry`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print compression method for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} compression method: #{e.method}"
+    #       end
+    #     end
+    #
+    getter :method
+
+    #
+    # Get `Time` for this `Entry`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print time for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} time: #{e.time}"
+    #       end
+    #     end
+    #
+    getter :time
+
+    #
+    # Get CRC-32 for this `Entry` as a `UInt32`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print crc for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} CRC-32: #{e.crc}"
+    #       end
+    #     end
+    #
+    getter :crc
+
+    #
+    # Get compressed size for this `Entry` as a `UInt32`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print compressed size for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} compressed size: #{e.compressed_size}"
+    #       end
+    #     end
+    #
+    getter :compressed_size
+
+    #
+    # Get uncompressed size for this `Entry` as a `UInt32`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print uncompressed size for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} uncompressed size: #{e.uncompressed_size}"
+    #       end
+    #     end
+    #
+    # See also: `#size`
+    #
+    getter :uncompressed_size
+
+    #
+    # Get path for this `Entry` as a `String`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print uncompressed size for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path}"
+    #       end
+    #     end
+    #
+    getter :path
+
+    #
+    # Get `Extra` data for this `Entry` as an `Array`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print number of extra data items for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} extras: #{e.extras.size}"
+    #       end
+    #     end
+    #
+    getter :extras
+
+    #
+    # Get comment for this `Entry` as a `String`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print comment for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} comment: #{e.comment}"
+    #       end
+    #     end
+    #
+    getter :comment
+
+    #
+    # Get internal attributes for this `Entry` as a `UInt16`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print internal attributes for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} internal attributes: #{e.internal_attr}"
+    #       end
+    #     end
+    #
+    getter :internal_attr
+
+    #
+    # Get external attributes for this `Entry` as a `UInt32`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print external attributes for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} external attributes: #{e.external_attr}"
+    #       end
+    #     end
+    #
+    getter :external_attr
+
+    #
+    # Get position for this `Entry` as a `UInt32`.
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print position for each entry
+    #       zip.each do |e|
+    #         puts "#{e.path} position: #{e.pos}"
+    #       end
+    #     end
+    #
+    getter :pos
 
     # :nodoc:
     # central file header signature   4 bytes  (0x02014b50)
