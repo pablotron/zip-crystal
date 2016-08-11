@@ -33,16 +33,13 @@ end
 # create memory io
 mem_io = MemoryIO.new
 
-# open "/some/other/path/image.png" for writing
-File.open("/some/other/path/image.png", "wb") do |file_io|
-  # read from "foo.zip"
-  Zip.read("foo.zip") do |zip|
-    # extract "bar.txt" to mem_io
-    zip["bar.txt"].read(mem_io)
+# read from "foo.zip"
+Zip.read("foo.zip") do |zip|
+  # extract "bar.txt" to mem_io
+  zip["bar.txt"].write(mem_io)
 
-    # extract "image.png" to file_io
-    zip["image.png"].read(file_io)
-  end
+  # extract "image.png" to "output-image.png"
+  zip["image.png"].write("output-image.png")
 end
 ```
 

@@ -53,6 +53,7 @@ describe Zip do
       zip.add("foo.txt", MemoryIO.new("foo"))
       zip.add("bar.txt", "bar")
       zip.add_file("test.cr", TEST_FILE_PATH)
+      zip.add_dir("example-dir")
     end
   end
 
@@ -79,7 +80,7 @@ describe Zip do
   it "reads an archive created by an external program" do
     Zip.read(File.join(TEST_DIR, "real.zip")) do |zip|
       zip.each do |e|
-        e.read(File.open("/dev/null", "wb"))
+        e.write("/dev/null")
 
         # p e.extras.map { |e| { e.code, e.size } }
         # p e.local_extras.map { |e| { e.code, e.size } }
@@ -93,8 +94,8 @@ describe Zip do
         pp e.path
 
         io = MemoryIO.new
-        # e.read(STDOUT)
-        e.read(io)
+        # e.write(STDOUT)
+        e.write(io)
         io.close
       end
     end

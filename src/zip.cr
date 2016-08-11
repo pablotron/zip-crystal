@@ -1,4 +1,4 @@
-require "./zip/*"
+# require "./zip/*"
 require "zlib"
 
 # :nodoc:
@@ -37,7 +37,7 @@ require "zlib"
 #     # read from "foo.zip"
 #     Zip.read("foo.zip") do |zip|
 #       # read contents of "bar.txt" in "foo.zip" into mem_io
-#       zip["bar.txt"].read(mem_io)
+#       zip["bar.txt"].write(mem_io)
 #     end
 #
 # Writing to a zip file:
@@ -679,261 +679,354 @@ module Zip
     end
   end
 
-  #
-  # Internal class used to store files for `Writer` instance.
-  #
-  # You should not need to instantiate this class directly; it is called
-  # automatically by `Writer#add` and `Writer#add_file`.
-  #
-  class WriterEntry
-    include TimeHelper
-    include NoneCompressionHelper
-    include DeflateCompressionHelper
-
+  module Writers
     #
-    # Default flags for local and central header.
+    # Abstract base class for classes used to store files and directories
+    # for `Writer` instance.
     #
-    GENERAL_FLAGS = GeneralFlags.flags(FOOTER, EFS)
+    abstract class WriterEntry
+      include TimeHelper
 
-    #
-    # Create a new WriterEntry instance.
-    #
-    # You should not need to call this method directly; it is called
-    # automatically by `Writer#add` and `Writer#add_file`.
-    #
-    def initialize(
-      @pos      : UInt32,
-      @path     : String,
-      @io       : IO,
-      @method   : CompressionMethod = CompressionMethod::DEFLATE,
-      @time     : Time = Time.now,
-      @comment  : String = "",
-    )
-      @crc = 0_u32
-      @src_len = 0_u32
-      @dst_len = 0_u32
-    end
+      def initialize(
+        @pos      : UInt32,
+        @path     : String,
+        @method   : CompressionMethod = CompressionMethod::DEFLATE,
+        @time     : Time = Time.now,
+        @comment  : String = "",
+        @flags    : GeneralFlags = GeneralFlags.flags(),
+        @external : UInt32 = 0_u32,
+      )
+        @crc = 0_u32
+        @src_len = 0_u32
+        @dst_len = 0_u32
+      end
 
-    #
-    # Write local file entry to IO and return the number of bytes
-    # written.
-    #
-    # You should not need to call this method directly; it is called
-    # automatically by `Writer#add` and `Writer#add_file`.
-    #
-    def to_s(dst_io) : UInt32
-      # write header
-      r = write_header(dst_io, @path, @method, @time)
+      #
+      # Write local file entry to IO and return the number of bytes
+      # written.
+      #
+      # You should not need to call this method directly; it is called
+      # automatically by `Writer#add` and `Writer#add_file`.
+      #
+      def to_s(dst_io) : UInt32
+        # write header
+        r = write_header(dst_io, @flags, @path, @method, @time)
 
-      # write body
-      @crc, @src_len, @dst_len = write_body(dst_io)
-      r += @dst_len
+        # write body
+        @crc, @src_len, @dst_len = write_body(dst_io)
+        r += @dst_len
 
-      # write footer
-      r += write_footer(dst_io, @crc, @src_len, @dst_len)
+        # write footer
+        r += write_footer(dst_io, @crc, @src_len, @dst_len)
 
-      # return number of bytes written
-      r
-    end
+        # return number of bytes written
+        r
+      end
 
-    # :nodoc:
-    # local file header signature     4 bytes  (0x04034b50)
-    # version needed to extract       2 bytes
-    # general purpose bit flag        2 bytes
-    # compression method              2 bytes
-    # last mod file time              2 bytes
-    # last mod file date              2 bytes
-    # crc-32                          4 bytes
-    # compressed size                 4 bytes
-    # uncompressed size               4 bytes
-    # file name length                2 bytes
-    # extra field length              2 bytes
-    # file name (variable size)
-    # extra field (variable size)
-    # :nodoc:
+      # :nodoc:
+      # local file header signature     4 bytes  (0x04034b50)
+      # version needed to extract       2 bytes
+      # general purpose bit flag        2 bytes
+      # compression method              2 bytes
+      # last mod file time              2 bytes
+      # last mod file date              2 bytes
+      # crc-32                          4 bytes
+      # compressed size                 4 bytes
+      # uncompressed size               4 bytes
+      # file name length                2 bytes
+      # extra field length              2 bytes
+      # file name (variable size)
+      # extra field (variable size)
+      # :nodoc:
 
-    #
-    # Write file header and return the number of bytes written.
-    #
-    private def write_header(
-      io      : IO,
-      path    : String,
-      method  : CompressionMethod,
-      time    : Time,
-    ) : UInt32
-      # get path length, in bytes
-      path_len = path.bytesize
+      #
+      # Write local header and return the number of bytes written.
+      #
+      private def write_header(
+        io      : IO,
+        flags   : GeneralFlags,
+        path    : String,
+        method  : CompressionMethod,
+        time    : Time,
+      ) : UInt32
+        # get path length, in bytes
+        path_len = path.bytesize
 
-      # check file path
-      raise Error.new("empty file path") if path_len == 0
-      raise Error.new("file path too long") if path_len >= UInt16::MAX
-      raise Error.new("file path contains leading slash") if path[0] == '/'
+        # check file path
+        raise Error.new("empty file path") if path_len == 0
+        raise Error.new("file path too long") if path_len >= UInt16::MAX
+        raise Error.new("file path contains leading slash") if path[0] == '/'
 
-      # write magic (u32), version needed (u16), flags (u16), and
-      # compression method (u16)
-      MAGIC[:file_header].to_u32.to_io(io, LE)
-      Version::NEEDED.to_io(io)
-      GENERAL_FLAGS.to_u16.to_io(io, LE)
-      method.to_u16.to_io(io, LE)
+        # write magic (u32), version needed (u16), flags (u16), and
+        # compression method (u16)
+        MAGIC[:file_header].to_u32.to_io(io, LE)
+        Version::NEEDED.to_io(io)
+        flags.to_u16.to_io(io, LE)
+        method.to_u16.to_io(io, LE)
 
-      # write time (u32)
-      write_time(io, time)
+        # write time (u32)
+        write_time(io, time)
 
-      # crc (u32), compressed size (u32), uncompressed size (u32)
-      # (these will be populated in the footer)
-      0_u32.to_u32.to_io(io, LE)
-      0_u32.to_u32.to_io(io, LE)
-      0_u32.to_u32.to_io(io, LE)
+        # crc (u32), compressed size (u32), uncompressed size (u32)
+        # (these will be populated in the footer)
+        0_u32.to_u32.to_io(io, LE)
+        0_u32.to_u32.to_io(io, LE)
+        0_u32.to_u32.to_io(io, LE)
 
-      # write file path length (u16)
-      path_len.to_u16.to_io(io, LE)
+        # write file path length (u16)
+        path_len.to_u16.to_io(io, LE)
 
-      # write extras field length (u16)
-      extras_len = 0_u32
-      extras_len.to_u16.to_io(io, LE)
+        # write extras field length (u16)
+        extras_len = 0_u32
+        extras_len.to_u16.to_io(io, LE)
 
-      # write path field
-      path.to_s(io)
+        # write path field
+        path.to_s(io)
 
-      # write extra fields
-      # TODO: implement this
+        # write extra fields
+        # TODO: implement this
 
-      # return number of bytes written
-      30_u32 + path_len + extras_len
-    end
+        # return number of bytes written
+        30_u32 + path_len + extras_len
+      end
 
-    #
-    # Write file contents and return the number of bytes written.
-    #
-    private def write_body(dst_io : IO)
-      case @method
-      when CompressionMethod::NONE
-        compress_none(@io, dst_io)
-      when CompressionMethod::DEFLATE
-        compress_deflate(@io, dst_io)
-      else
-        raise Error.new("unsupported compression method: #{@method}")
+      abstract def write_body(dst_io : IO)
+
+      abstract def write_footer(
+        io      : IO,
+        crc     : UInt32,
+        src_len : UInt32,
+        dst_len : UInt32,
+      ) : UInt32
+
+      # :nodoc:
+      # central file header signature   4 bytes  (0x02014b50)
+      # version made by                 2 bytes
+      # version needed to extract       2 bytes
+      # general purpose bit flag        2 bytes
+      # compression method              2 bytes
+      # last mod file time              2 bytes
+      # last mod file date              2 bytes
+      # crc-32                          4 bytes
+      # compressed size                 4 bytes
+      # uncompressed size               4 bytes
+      # file name length                2 bytes
+      # extra field length              2 bytes
+      # file comment length             2 bytes
+      # disk number start               2 bytes
+      # internal file attributes        2 bytes
+      # external file attributes        4 bytes
+      # relative offset of local header 4 bytes
+      #
+      # file name (variable size)
+      # extra field (variable size)
+      # file comment (variable size)
+      # :nodoc:
+
+      #
+      # Write central directory data for this `WriterEntry` and return the
+      # number of bytes written.
+      #
+      # You never need to call this method directly; it is called
+      # automatically by `Writer#close`.
+      #
+      def write_central(
+        io      : IO,
+        version : Version = Version::DEFAULT,
+      ) : UInt32
+        MAGIC[:cdr_header].to_u32.to_io(io, LE)
+        version.to_io(io)
+        Version::NEEDED.to_io(io)
+        @flags.to_u16.to_io(io, LE)
+        @method.to_u16.to_io(io, LE)
+
+        # write time
+        write_time(io, @time)
+
+        @crc.to_u32.to_io(io, LE)
+        @dst_len.to_u32.to_io(io, LE)
+        @src_len.to_u32.to_io(io, LE)
+
+        # get path length and write it
+        path_len = @path.bytesize
+        path_len.to_u16.to_io(io, LE)
+
+        # write extras field length (u16)
+        extras_len = 0_u32
+        extras_len.to_u16.to_io(io, LE)
+
+        # write comment field length (u16)
+        comment_len = @comment.bytesize
+        comment_len.to_u16.to_io(io, LE)
+
+        # write disk number
+        0_u32.to_u16.to_io(io, LE)
+
+        # write file attributes (internal, external)
+        0_u32.to_u16.to_io(io, LE)
+        @external.to_u32.to_io(io, LE)
+
+        # write local header offset
+        @pos.to_u32.to_io(io, LE)
+
+        # write path field
+        @path.to_s(io)
+
+        # write extra fields
+        # TODO: implement this
+
+        # write comment
+        @comment.to_s(io)
+
+        # return number of bytes written
+        46_u32 + path_len + extras_len + comment_len
       end
     end
 
-    # :nodoc:
-    #  4.3.9  Data descriptor:
-    #       MAGIC = 0x08074b50              4 bytes
-    #       crc-32                          4 bytes
-    #       compressed size                 4 bytes
-    #       uncompressed size               4 bytes
     #
-    # 4.3.9.3 Although not originally assigned a signature, the value
-    # 0x08074b50 has commonly been adopted as a signature value
-    # :nodoc:
-
-    #
-    # Write file footer (data descriptor) and return the number of bytes
-    # written.
-    #
-    private def write_footer(
-      io      : IO,
-      crc     : UInt32,
-      src_len : UInt32,
-      dst_len : UInt32,
-    ) : UInt32
-      # write magic (u32)
-      MAGIC[:file_footer].to_u32.to_io(io, LE)
-
-      # write crc (u32), compressed size (u32), and full size (u32)
-      crc.to_u32.to_io(io, LE)
-      dst_len.to_u32.to_io(io, LE)
-      src_len.to_u32.to_io(io, LE)
-
-      # return number of bytes written
-      16_u32
-    end
-
-    # :nodoc:
-    # central file header signature   4 bytes  (0x02014b50)
-    # version made by                 2 bytes
-    # version needed to extract       2 bytes
-    # general purpose bit flag        2 bytes
-    # compression method              2 bytes
-    # last mod file time              2 bytes
-    # last mod file date              2 bytes
-    # crc-32                          4 bytes
-    # compressed size                 4 bytes
-    # uncompressed size               4 bytes
-    # file name length                2 bytes
-    # extra field length              2 bytes
-    # file comment length             2 bytes
-    # disk number start               2 bytes
-    # internal file attributes        2 bytes
-    # external file attributes        4 bytes
-    # relative offset of local header 4 bytes
-    #
-    # file name (variable size)
-    # extra field (variable size)
-    # file comment (variable size)
-    # :nodoc:
-
-    #
-    # Write central directory data for this `WriterEntry` and return the
-    # number of bytes written.
+    # Internal class used to store files for `Writer` instance.
     #
     # You should not need to call this method directly; it is called
-    # automatically by `Writer#close`.
+    # automatically by `Writer#add` and `Writer#add_file`.
     #
-    def write_central(
-      io      : IO,
-      version : Version = Version::DEFAULT,
-    ) : UInt32
-      MAGIC[:cdr_header].to_u32.to_io(io, LE)
-      version.to_io(io)
-      Version::NEEDED.to_io(io)
-      GENERAL_FLAGS.to_u16.to_io(io, LE)
-      @method.to_u16.to_io(io, LE)
+    class FileEntry < WriterEntry
+      include NoneCompressionHelper
+      include DeflateCompressionHelper
 
-      # write time
-      write_time(io, @time)
+      #
+      # Flags for local and central file header.
+      #
+      FLAGS = GeneralFlags.flags(FOOTER, EFS)
 
-      @crc.to_u32.to_io(io, LE)
-      @dst_len.to_u32.to_io(io, LE)
-      @src_len.to_u32.to_io(io, LE)
+      #
+      # Create a new FileWriterEntry instance.
+      #
+      # You should not need to call this method directly; it is called
+      # automatically by `Writer#add` and `Writer#add_file`.
+      #
+      def initialize(
+        pos     : UInt32,
+        path    : String,
+        @io     : IO,
+        method  : CompressionMethod = CompressionMethod::DEFLATE,
+        time    : Time = Time.now,
+        comment : String = "",
+      )
+        super(
+          pos:      pos,
+          path:     path,
+          method:   method,
+          time:     time,
+          comment:  comment,
+          flags:    FLAGS,
+          external: 0_u32,
+        )
+      end
 
-      # get path length and write it
-      path_len = @path.bytesize
-      path_len.to_u16.to_io(io, LE)
+      #
+      # Write file contents and return the number of bytes written.
+      #
+      private def write_body(dst_io : IO)
+        case @method
+        when CompressionMethod::NONE
+          compress_none(@io, dst_io)
+        when CompressionMethod::DEFLATE
+          compress_deflate(@io, dst_io)
+        else
+          raise Error.new("unsupported compression method: #{@method}")
+        end
+      end
 
-      # write extras field length (u16)
-      extras_len = 0_u32
-      extras_len.to_u16.to_io(io, LE)
+      # :nodoc:
+      #  4.3.9  Data descriptor:
+      #       MAGIC = 0x08074b50              4 bytes
+      #       crc-32                          4 bytes
+      #       compressed size                 4 bytes
+      #       uncompressed size               4 bytes
+      #
+      # 4.3.9.3 Although not originally assigned a signature, the value
+      # 0x08074b50 has commonly been adopted as a signature value
+      # :nodoc:
 
-      # write comment field length (u16)
-      comment_len = @comment.bytesize
-      comment_len.to_u16.to_io(io, LE)
+      #
+      # Write file footer (data descriptor) and return the number of bytes
+      # written.
+      #
+      private def write_footer(
+        io      : IO,
+        crc     : UInt32,
+        src_len : UInt32,
+        dst_len : UInt32,
+      ) : UInt32
+        # write magic (u32)
+        MAGIC[:file_footer].to_u32.to_io(io, LE)
 
-      # write disk number
-      0_u32.to_u16.to_io(io, LE)
+        # write crc (u32), compressed size (u32), and full size (u32)
+        crc.to_u32.to_io(io, LE)
+        dst_len.to_u32.to_io(io, LE)
+        src_len.to_u32.to_io(io, LE)
 
-      # write file attributes (internal, external)
-      # TODO
-      0_u32.to_u16.to_io(io, LE)
-      0_u32.to_u32.to_io(io, LE)
+        # return number of bytes written
+        16_u32
+      end
+    end
 
-      # write local header offset
-      @pos.to_u32.to_io(io, LE)
+    #
+    # Internal class used to store files for `Writer` instance.
+    #
+    # You should not need to instantiate this class directly; use
+    # `Writer#add_dir` instead.
+    #
+    class DirEntry < WriterEntry
+      #
+      # Default flags for local and central file header.
+      #
+      FLAGS = GeneralFlags.flags(EFS)
 
-      # write path field
-      @path.to_s(io)
+      #
+      # Create a new DirEntry instance.
+      #
+      # You should not need to call this method directly; use
+      # `Writer#add_dir` instead.
+      #
+      def initialize(
+        pos     : UInt32,
+        path    : String,
+        time    : Time = Time.now,
+        comment : String = "",
+      )
+        super(
+          pos:      pos,
+          path:     path,
+          method:   CompressionMethod::NONE,
+          time:     time,
+          comment:  comment,
+          flags:    FLAGS,
+          external: 1_u32,
+        )
+      end
 
-      # write extra fields
-      # TODO: implement this
+      private def write_body(dst_io : IO)
+        { 0_u32, 0_u32, 0_u32 }
+      end
 
-      # write comment
-      @comment.to_s(io)
-
-      # return number of bytes written
-      46_u32 + path_len + extras_len + comment_len
+      private def write_footer(
+        io      : IO,
+        crc     : UInt32,
+        src_len : UInt32,
+        dst_len : UInt32,
+      ) : UInt32
+        0_u32
+      end
     end
   end
 
+  #
+  # Zip file writer.
+  #
+  # You shouldn't need to instantiate this class directly; use
+  # `Zip.write()` instead.
+  #
   class Writer
     #
     # Is this `Writer` closed?
@@ -952,7 +1045,7 @@ module Zip
       @comment  : String = "",
       @version  : Version = Version::DEFAULT,
     )
-      @entries = [] of WriterEntry
+      @entries = [] of Writers::WriterEntry
       @closed = false
       @src_pos = @pos
     end
@@ -1002,6 +1095,23 @@ module Zip
       bytes_written
     end
 
+    private def add_entry(entry : Writers::WriterEntry) : UInt32
+      # make sure writer is still open
+      assert_open
+
+      # add to list of entries
+      @entries << entry
+
+      # cache offset
+      src_pos = @pos
+
+      # write entry, update offset
+      @pos += entry.to_s(@io)
+
+      # return number of bytes written
+      @pos - src_pos
+    end
+
     #
     # Read data from `IO` *io*, write it to *path* in archive, then
     # return the number of bytes written.
@@ -1024,30 +1134,14 @@ module Zip
       time    : Time = Time.now,
       comment : String = "",
     ) : UInt32
-      # make sure writer is still open
-      assert_open
-
-      # create entry
-      entry = WriterEntry.new(
+      add_entry(Writers::FileEntry.new(
         pos:      @pos,
         path:     path,
         io:       io,
         method:   method,
         time:     time,
         comment:  comment,
-      )
-
-      # add to list of entries
-      @entries << entry
-
-      # cache offset
-      src_pos = @pos
-
-      # write entry, update offset
-      @pos += entry.to_s(@io)
-
-      # return number of bytes written
-      @pos - src_pos
+      ))
     end
 
     #
@@ -1070,6 +1164,31 @@ module Zip
       comment : String = "",
     ) : UInt32
       add(path, MemoryIO.new(data), method, time, comment)
+    end
+
+    #
+    # Add empty directory to archive as *path* and return number of
+    # bytes written.
+    #
+    # Example:
+    #
+    #     # write to "foo.zip"
+    #     Zip.write("foo.zip") do |zip|
+    #       # add a directory named "example-dir"
+    #       zip.add_dir("example-dir")
+    #     end
+    #
+    def add_dir(
+      path    : String,
+      time    : Time = Time.now,
+      comment : String = "",
+    ) : UInt32
+      add_entry(Writers::DirEntry.new(
+        pos:      @pos,
+        path:     path,
+        time:     time,
+        comment:  comment,
+      ))
     end
 
     #
@@ -1443,11 +1562,11 @@ module Zip
     #       # open archive "./foo.zip"
     #       Zip.read("foo.zip") do |zip|
     #         # write contents of "bar.txt" to "output-bar.txt"
-    #         zip["foo.txt"].read(io)
+    #         zip["foo.txt"].write(io)
     #       end
     #     end
     #
-    def read(dst_io : IO) : UInt32
+    def write(dst_io : IO) : UInt32
       # create buffer for local header
       buf = Bytes.new(30)
 
@@ -1490,6 +1609,30 @@ module Zip
 
       # return number of bytes written
       @uncompressed_size
+    end
+
+    #
+    # Write contents of `Entry` into given path *path* and return the
+    # number of bytes written.
+    #
+    # Raises an `Error` if the file contents could not be read or if the
+    # compression method is unsupported.
+    #
+    # Example:
+    #
+    #     # open "output-bar.txt" for writing
+    #     File.open("output-bar.txt", "wb") do |io|
+    #       # open archive "./foo.zip"
+    #       Zip.read("foo.zip") do |zip|
+    #         # write contents of "bar.txt" to "output-bar.txt"
+    #         zip["foo.txt"].write(io)
+    #       end
+    #     end
+    #
+    def write(path : String) : UInt32
+      File.open(path, "wb") do |io|
+        write(io)
+      end
     end
 
     #
@@ -1712,9 +1855,9 @@ module Zip
     #
     # Example:
     #
-    #     # get bar.txt and read it into memory io
+    #     # get bar.txt and write it into memory io
     #     io = MemoryIO.new
-    #     zip["bar.txt"].read(io)
+    #     zip["bar.txt"].write(io)
     #
     def [](path : String) : Entry
       paths[path]
@@ -1725,10 +1868,10 @@ module Zip
     #
     # Example:
     #
-    #     # read bar.txt into memory io if it exists
+    #     # write contents of "bar.txt" into memory io if it exists
     #     if e = zip["bar.txt"]?
     #       io = MemoryIO.new
-    #       e.read(io)
+    #       e.write(io)
     #     end
     #
     def []?(path : String) : Entry?
@@ -1740,9 +1883,9 @@ module Zip
     #
     # Example:
     #
-    #     # read third entry from archive into memory io
+    #     # write contents of third entry from archive into memory io
     #     io = MemoryIO.new
-    #     zip[2].read(io)
+    #     zip[2].write(io)
     #
     def [](id : Int) : Entry
       @entries[id]
@@ -1753,10 +1896,10 @@ module Zip
     #
     # Example:
     #
-    #     # read third entry from archive into memory io
+    #     # write contents of third entry from archive into memory io
     #     if e = zip[2]?
     #       io = MemoryIO.new
-    #       e.read(io)
+    #       e.write(io)
     #     end
     #
     def []?(id : Int) : Entry?
@@ -1866,7 +2009,7 @@ module Zip
   #
   #     # read "bar.txt" from "foo.zip"
   #     Zip.read(File.open("foo.zip", "rb")) do |zip|
-  #       zip["bar.txt"].read(io)
+  #       zip["bar.txt"].write(io)
   #     end
   #
   def self.read(
@@ -1888,7 +2031,7 @@ module Zip
   #     # extract "bar.txt" from zip archive in Slice some_slice and
   #     # save it to MemoryIO
   #     Zip.read(some_slice) do |zip|
-  #       zip["bar.txt"].read(io)
+  #       zip["bar.txt"].write(io)
   #     end
   #
   def self.read(
@@ -1909,7 +2052,7 @@ module Zip
   #
   #     # extract "bar.txt" from "foo.zip" and save it to MemoryIO
   #     Zip.read("foo.zip") do |zip|
-  #       zip["bar.txt"].read(io)
+  #       zip["bar.txt"].write(io)
   #     end
   #
   def self.read(
