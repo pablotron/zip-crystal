@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta id="repository-name" content="github.com/pablotron/zip-crystal">
+  <link href="../css/style.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="../js/doc.js"></script>
+  <title>Zip::GeneralFlags - github.com/pablotron/zip-crystal</title>
+</head>
+<body>
+
+<div id="types-list">
+  <div id="search-box">
+    <input type="search" id="search-input" placeholder="Search...">
+  </div>
+
+  <ul>
+    <li><a href="../index.html">README</a></li>
+  </ul>
+
+  <ul>
+  
+  <li class="parent open current" data-id="github.com/pablotron/zip-crystal/Zip" data-name="zip">
+      <a href="../Zip.html">Zip</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Archive" data-name="zip::archive">
+      <a href="../Zip/Archive.html">Archive</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/CompressionMethod" data-name="zip::compressionmethod">
+      <a href="../Zip/CompressionMethod.html">CompressionMethod</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/DeflateCompressionHelper" data-name="zip::deflatecompressionhelper">
+      <a href="../Zip/DeflateCompressionHelper.html">DeflateCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Entry" data-name="zip::entry">
+      <a href="../Zip/Entry.html">Entry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Error" data-name="zip::error">
+      <a href="../Zip/Error.html">Error</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+      <a href="../Zip/Extra.html">Extra</a>
+      
+    </li>
+  
+  <li class=" current" data-id="github.com/pablotron/zip-crystal/Zip/GeneralFlags" data-name="zip::generalflags">
+      <a href="../Zip/GeneralFlags.html">GeneralFlags</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/NoneCompressionHelper" data-name="zip::nonecompressionhelper">
+      <a href="../Zip/NoneCompressionHelper.html">NoneCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Source" data-name="zip::source">
+      <a href="../Zip/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/TimeHelper" data-name="zip::timehelper">
+      <a href="../Zip/TimeHelper.html">TimeHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Version" data-name="zip::version">
+      <a href="../Zip/Version.html">Version</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writer" data-name="zip::writer">
+      <a href="../Zip/Writer.html">Writer</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
+      <a href="../Zip/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+</div>
+
+<div id="main-content">
+<h1 class="type-name">
+
+  <span class="kind">enum</span> Zip::GeneralFlags
+
+</h1>
+
+
+
+
+
+  <h2>Overview</h2>
+
+  <p>General flags.</p>
+
+<p>Used by local header and central directory header.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>Defined in:</h2>
+  
+
+
+
+  
+    <h2>Enum Members</h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="ENCRYPTION">
+        <strong>ENCRYPTION</strong> = <code><span class="n">1</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>encrypted using weak encryption</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="COMPRESSION_OPTION_1">
+        <strong>COMPRESSION_OPTION_1</strong> = <code><span class="n">2</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>compression method-specific flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="COMPRESSION_OPTION_2">
+        <strong>COMPRESSION_OPTION_2</strong> = <code><span class="n">4</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>compression method-specific flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="FOOTER">
+        <strong>FOOTER</strong> = <code><span class="n">8</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>this entry has a data descriptor footer</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_4">
+        <strong>RESERVED_4</strong> = <code><span class="n">16</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="PATCH">
+        <strong>PATCH</strong> = <code><span class="n">32</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>this entry is patch data</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="STRONG_ENCRYPTION">
+        <strong>STRONG_ENCRYPTION</strong> = <code><span class="n">64</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>this entry uses strong encryption</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_7">
+        <strong>RESERVED_7</strong> = <code><span class="n">128</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_8">
+        <strong>RESERVED_8</strong> = <code><span class="n">256</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_9">
+        <strong>RESERVED_9</strong> = <code><span class="n">512</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_10">
+        <strong>RESERVED_10</strong> = <code><span class="n">1024</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="EFS">
+        <strong>EFS</strong> = <code><span class="n">2048</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>the file name and comment for this entry are UTF-8 encoded.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_12">
+        <strong>RESERVED_12</strong> = <code><span class="n">4096</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="MASKED_VALUES">
+        <strong>MASKED_VALUES</strong> = <code><span class="n">8192</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Some fields in the local header are masked (that is, empty).</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_14">
+        <strong>RESERVED_14</strong> = <code><span class="n">16384</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="RESERVED_15">
+        <strong>RESERVED_15</strong> = <code><span class="n">32768</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>reserved flag</p>
+      </dd>
+      
+    
+  </dl>
+
+
+
+
+
+  <h2>Instance Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#compression_option_1%3F-instance-method" class="signature"><strong>#compression_option_1?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#compression_option_2%3F-instance-method" class="signature"><strong>#compression_option_2?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#efs%3F-instance-method" class="signature"><strong>#efs?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#encryption%3F-instance-method" class="signature"><strong>#encryption?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#footer%3F-instance-method" class="signature"><strong>#footer?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#masked_values%3F-instance-method" class="signature"><strong>#masked_values?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#patch%3F-instance-method" class="signature"><strong>#patch?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_10%3F-instance-method" class="signature"><strong>#reserved_10?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_12%3F-instance-method" class="signature"><strong>#reserved_12?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_14%3F-instance-method" class="signature"><strong>#reserved_14?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_15%3F-instance-method" class="signature"><strong>#reserved_15?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_4%3F-instance-method" class="signature"><strong>#reserved_4?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_7%3F-instance-method" class="signature"><strong>#reserved_7?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_8%3F-instance-method" class="signature"><strong>#reserved_8?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved_9%3F-instance-method" class="signature"><strong>#reserved_9?</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#strong_encryption%3F-instance-method" class="signature"><strong>#strong_encryption?</strong></a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+  
+</div>
+
+
+
+
+  <h2>Instance Method Detail</h2>
+  
+    <div class="entry-detail" id="compression_option_1?-instance-method">
+      <div class="signature">
+        
+        def <strong>compression_option_1?</strong>
+
+        <a class="method-permalink" href="#compression_option_1%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="compression_option_2?-instance-method">
+      <div class="signature">
+        
+        def <strong>compression_option_2?</strong>
+
+        <a class="method-permalink" href="#compression_option_2%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="efs?-instance-method">
+      <div class="signature">
+        
+        def <strong>efs?</strong>
+
+        <a class="method-permalink" href="#efs%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="encryption?-instance-method">
+      <div class="signature">
+        
+        def <strong>encryption?</strong>
+
+        <a class="method-permalink" href="#encryption%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="footer?-instance-method">
+      <div class="signature">
+        
+        def <strong>footer?</strong>
+
+        <a class="method-permalink" href="#footer%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="masked_values?-instance-method">
+      <div class="signature">
+        
+        def <strong>masked_values?</strong>
+
+        <a class="method-permalink" href="#masked_values%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="patch?-instance-method">
+      <div class="signature">
+        
+        def <strong>patch?</strong>
+
+        <a class="method-permalink" href="#patch%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_10?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_10?</strong>
+
+        <a class="method-permalink" href="#reserved_10%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_12?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_12?</strong>
+
+        <a class="method-permalink" href="#reserved_12%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_14?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_14?</strong>
+
+        <a class="method-permalink" href="#reserved_14%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_15?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_15?</strong>
+
+        <a class="method-permalink" href="#reserved_15%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_4?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_4?</strong>
+
+        <a class="method-permalink" href="#reserved_4%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_7?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_7?</strong>
+
+        <a class="method-permalink" href="#reserved_7%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_8?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_8?</strong>
+
+        <a class="method-permalink" href="#reserved_8%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved_9?-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved_9?</strong>
+
+        <a class="method-permalink" href="#reserved_9%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="strong_encryption?-instance-method">
+      <div class="signature">
+        
+        def <strong>strong_encryption?</strong>
+
+        <a class="method-permalink" href="#strong_encryption%3F-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>

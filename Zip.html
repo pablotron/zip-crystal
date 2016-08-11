@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta id="repository-name" content="github.com/pablotron/zip-crystal">
+  <link href="css/style.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="js/doc.js"></script>
+  <title>Zip - github.com/pablotron/zip-crystal</title>
+</head>
+<body>
+
+<div id="types-list">
+  <div id="search-box">
+    <input type="search" id="search-input" placeholder="Search...">
+  </div>
+
+  <ul>
+    <li><a href="index.html">README</a></li>
+  </ul>
+
+  <ul>
+  
+  <li class="parent current" data-id="github.com/pablotron/zip-crystal/Zip" data-name="zip">
+      <a href="Zip.html">Zip</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Archive" data-name="zip::archive">
+      <a href="Zip/Archive.html">Archive</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/CompressionMethod" data-name="zip::compressionmethod">
+      <a href="Zip/CompressionMethod.html">CompressionMethod</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/DeflateCompressionHelper" data-name="zip::deflatecompressionhelper">
+      <a href="Zip/DeflateCompressionHelper.html">DeflateCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Entry" data-name="zip::entry">
+      <a href="Zip/Entry.html">Entry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Error" data-name="zip::error">
+      <a href="Zip/Error.html">Error</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+      <a href="Zip/Extra.html">Extra</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/GeneralFlags" data-name="zip::generalflags">
+      <a href="Zip/GeneralFlags.html">GeneralFlags</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/NoneCompressionHelper" data-name="zip::nonecompressionhelper">
+      <a href="Zip/NoneCompressionHelper.html">NoneCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Source" data-name="zip::source">
+      <a href="Zip/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/TimeHelper" data-name="zip::timehelper">
+      <a href="Zip/TimeHelper.html">TimeHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Version" data-name="zip::version">
+      <a href="Zip/Version.html">Version</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writer" data-name="zip::writer">
+      <a href="Zip/Writer.html">Writer</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
+      <a href="Zip/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+</div>
+
+<div id="main-content">
+<h1 class="type-name">
+
+  <span class="kind">module</span> Zip
+
+</h1>
+
+
+
+
+
+  <h2>Overview</h2>
+
+  <p>Library for reading and writing zip files.</p>
+
+<p>Examples:</p>
+
+<p>Reading from a zip file:</p>
+
+<p># create output MemoryIO
+mem_io = MemoryIO.new</p>
+
+<p># read from "foo.zip"
+Zip.read("foo.zip") do |zip|
+# read contents of "bar.txt" in "foo.zip" into mem_io
+zip["bar.txt"].read(mem_io)
+end</p>
+
+<p>Writing to a zip file:</p>
+
+<p># write to "foo.zip"
+Zip.write("foo.zip") do |zip|
+# create "bar.txt" with contents "hello!"
+zip.add("bar.txt", "hello!")
+end</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>Defined in:</h2>
+  
+
+
+
+  
+    <h2>Constant Summary</h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="BUFFER_SIZE">
+        <strong>BUFFER_SIZE</strong> = <code><span class="n">8192</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Size of internal buffers, in bytes.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="MAGIC">
+        <strong>MAGIC</strong> = <code>{cdr_header: <span class="n">33639248_u32</span>, cdr_footer: <span class="n">101010256_u32</span>, file_header: <span class="n">67324752_u32</span>, file_footer: <span class="n">134695760_u32</span>}</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Magic numbers for various data in Zip stream.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="VERSION">
+        <strong>VERSION</strong> = <code><span class="s">&quot;0.1.0&quot;</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Version of zip-crystal library.</p>
+      </dd>
+      
+    
+  </dl>
+
+
+
+  <h2>Class Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#read%28slice%3ABytes%2C%26cb%3AArchive-%3E%29%3AVoid-class-method" class="signature"><strong>.read</strong>(slice : Bytes, &cb : Archive -> ) : Void</a>
+        
+          <div class="summary"><p>Read Zip::Archive from Slice and pass it to the given block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#read%28path%3AString%2C%26cb%3AArchive-%3E%29%3AVoid-class-method" class="signature"><strong>.read</strong>(path : String, &cb : Archive -> ) : Void</a>
+        
+          <div class="summary"><p>Read Zip::Archive from File and pass it to the given block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#read%28io%3AIO%2C%26cb%3AArchive-%3E%29%3AVoid-class-method" class="signature"><strong>.read</strong>(io : IO, &cb : Archive -> ) : Void</a>
+        
+          <div class="summary"><p>Read Zip::Archive from seekable IO instance and pass it to the given block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write%28io%3AIO%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method" class="signature"><strong>.write</strong>(io : IO, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : Version = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : Writer -> ) : UInt32</a>
+        
+          <div class="summary"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output IO <em>io</em> and yield it to the given block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write%28path%3AString%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method" class="signature"><strong>.write</strong>(path : String, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : Version = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : Writer -> ) : UInt32</a>
+        
+          <div class="summary"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output file <em>path</em> and yield it to the given block.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+
+
+<div class="methods-inherited">
+  
+</div>
+
+
+  <h2>Class Method Detail</h2>
+  
+    <div class="entry-detail" id="read&#40;slice:Bytes,&amp;cb:Archive-&gt;&#41;:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>read</strong>(slice : Bytes, &cb : <a href="Zip/Archive.html">Archive</a> -> ) : Void
+
+        <a class="method-permalink" href="#read%28slice%3ABytes%2C%26cb%3AArchive-%3E%29%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Read Zip::Archive from Slice and pass it to the given block.</p>
+
+<p>Example:</p>
+
+<p># create memory io for contents of "bar.txt"
+io = MemoryIO.new</p>
+
+<p># extract "bar.txt" from zip archive in Slice some_slice and
+# save it to MemoryIO
+Zip.read(some_slice) do |zip|
+zip["bar.txt"].read(io)
+end</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="read&#40;path:String,&amp;cb:Archive-&gt;&#41;:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>read</strong>(path : String, &cb : <a href="Zip/Archive.html">Archive</a> -> ) : Void
+
+        <a class="method-permalink" href="#read%28path%3AString%2C%26cb%3AArchive-%3E%29%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Read Zip::Archive from File and pass it to the given block.</p>
+
+<p>Example:</p>
+
+<p># create memory io for contents of "bar.txt"
+io = MemoryIO.new</p>
+
+<p># extract "bar.txt" from "./foo.zip" and save it to MemoryIO
+Zip.read("./foo.zip") do |zip|
+zip["bar.txt"].read(io)
+end</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="read&#40;io:IO,&amp;cb:Archive-&gt;&#41;:Void-class-method">
+      <div class="signature">
+        
+        def self.<strong>read</strong>(io : IO, &cb : <a href="Zip/Archive.html">Archive</a> -> ) : Void
+
+        <a class="method-permalink" href="#read%28io%3AIO%2C%26cb%3AArchive-%3E%29%3AVoid-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Read Zip::Archive from seekable IO instance and pass it to the given
+block.</p>
+
+<p>Example:</p>
+
+<p># create memory io for contents of "bar.txt"
+io = MemoryIO.new</p>
+
+<p># read "bar.txt" from "./foo.zip"
+Zip.read(File.open("./foo.zip", "rb")) do |zip|
+zip["bar.txt"].read(io)
+end</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write&#40;io:IO,pos:UInt32&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u32&lt;/span&gt;,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,version:Version&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Version&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;::&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;DEFAULT&lt;/span&gt;,&amp;cb:Writer-&gt;&#41;:UInt32-class-method">
+      <div class="signature">
+        
+        def self.<strong>write</strong>(io : IO, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : <a href="Zip/Version.html">Version</a> = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : <a href="Zip/Writer.html">Writer</a> -> ) : UInt32
+
+        <a class="method-permalink" href="#write%28io%3AIO%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output IO <em>io</em> and yield it to
+the given block.  Returns number of bytes written.</p>
+
+<p>Example:</p>
+
+<p># create output IO
+File.open("foo.zip", "wb") do |io|
+Zip.write(io) do |zip|
+# add "bar.txt" with contents "hello!"
+zip.add("bar.txt", "hello!")
+end
+end</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write&#40;path:String,pos:UInt32&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u32&lt;/span&gt;,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,version:Version&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Version&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;::&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;DEFAULT&lt;/span&gt;,&amp;cb:Writer-&gt;&#41;:UInt32-class-method">
+      <div class="signature">
+        
+        def self.<strong>write</strong>(path : String, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : <a href="Zip/Version.html">Version</a> = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : <a href="Zip/Writer.html">Writer</a> -> ) : UInt32
+
+        <a class="method-permalink" href="#write%28path%3AString%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output file <em>path</em> and yield it to
+the given block.  Returns number of bytes written.</p>
+
+<p>Example:</p>
+
+<p># create "foo.zip"
+Zip.write("foo.zip") do |zip|
+# add "bar.txt" with contents "hello!"
+zip.add("bar.txt", "hello!")
+end</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+
+
+</div>
+
+</body>
+</html>

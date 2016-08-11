@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta id="repository-name" content="github.com/pablotron/zip-crystal">
+  <link href="../css/style.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="../js/doc.js"></script>
+  <title>Zip::Version - github.com/pablotron/zip-crystal</title>
+</head>
+<body>
+
+<div id="types-list">
+  <div id="search-box">
+    <input type="search" id="search-input" placeholder="Search...">
+  </div>
+
+  <ul>
+    <li><a href="../index.html">README</a></li>
+  </ul>
+
+  <ul>
+  
+  <li class="parent open current" data-id="github.com/pablotron/zip-crystal/Zip" data-name="zip">
+      <a href="../Zip.html">Zip</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Archive" data-name="zip::archive">
+      <a href="../Zip/Archive.html">Archive</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/CompressionMethod" data-name="zip::compressionmethod">
+      <a href="../Zip/CompressionMethod.html">CompressionMethod</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/DeflateCompressionHelper" data-name="zip::deflatecompressionhelper">
+      <a href="../Zip/DeflateCompressionHelper.html">DeflateCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Entry" data-name="zip::entry">
+      <a href="../Zip/Entry.html">Entry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Error" data-name="zip::error">
+      <a href="../Zip/Error.html">Error</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+      <a href="../Zip/Extra.html">Extra</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/GeneralFlags" data-name="zip::generalflags">
+      <a href="../Zip/GeneralFlags.html">GeneralFlags</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/NoneCompressionHelper" data-name="zip::nonecompressionhelper">
+      <a href="../Zip/NoneCompressionHelper.html">NoneCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Source" data-name="zip::source">
+      <a href="../Zip/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/TimeHelper" data-name="zip::timehelper">
+      <a href="../Zip/TimeHelper.html">TimeHelper</a>
+      
+    </li>
+  
+  <li class=" current" data-id="github.com/pablotron/zip-crystal/Zip/Version" data-name="zip::version">
+      <a href="../Zip/Version.html">Version</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writer" data-name="zip::writer">
+      <a href="../Zip/Writer.html">Writer</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
+      <a href="../Zip/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+</div>
+
+<div id="main-content">
+<h1 class="type-name">
+
+  <span class="kind">class</span> Zip::Version
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Zip/Version.html">Zip::Version</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>Overview</h2>
+
+  <p>Version identifier used to identify the version needed to extract a
+given file and to indicate the format of the external file
+attributes.</p>
+
+<p>See section 4.4.3.2 of APPNOTE.TXT for version details.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>Defined in:</h2>
+  
+
+
+
+  
+    <h2>Constant Summary</h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="DEFAULT">
+        <strong>DEFAULT</strong> = <code><span class="k">new</span>(<span class="n">0</span>, <span class="n">0</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Default version made by, if unspecified.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="NEEDED">
+        <strong>NEEDED</strong> = <code><span class="k">new</span>(<span class="n">2</span>, <span class="n">0</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Version needed to extract this entry (4.4.3.2).</p>
+      </dd>
+      
+    
+  </dl>
+
+
+
+  <h2>Class Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28major%3AInt32%2Cminor%3AInt32%2Ccompat%3AInt32%3D%3Cspanclass%3D%22n%22%3E0%3C%2Fspan%3E%29-class-method" class="signature"><strong>.new</strong>(major : Int32, minor : Int32, compat : Int32 = <span class="n">0</span>)</a>
+        
+          <div class="summary"><p>Create a version identifier from a major number, minor number, and optional compatability number.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28v%3AUInt16%29-class-method" class="signature"><strong>.new</strong>(v : UInt16)</a>
+        
+          <div class="summary"><p>Create a version identifier from a major number, minor number, and optional compatability number.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <h2>Instance Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#to_io%28io%29-instance-method" class="signature"><strong>#to_io</strong>(io)</a>
+        
+          <div class="summary"><p>Write version as 16-bit, little-endian integer and return number of bytes written.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_s%28io%29-instance-method" class="signature"><strong>#to_s</strong>(io)</a>
+        
+          <div class="summary"><p>Write version as string.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>Class Method Detail</h2>
+  
+    <div class="entry-detail" id="new&#40;major:Int32,minor:Int32,compat:Int32&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0&lt;/span&gt;&#41;-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(major : Int32, minor : Int32, compat : Int32 = <span class="n">0</span>)
+
+        <a class="method-permalink" href="#new%28major%3AInt32%2Cminor%3AInt32%2Ccompat%3AInt32%3D%3Cspanclass%3D%22n%22%3E0%3C%2Fspan%3E%29-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Create a version identifier from a major number, minor number, and
+optional compatability number.</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new&#40;v:UInt16&#41;-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(v : UInt16)
+
+        <a class="method-permalink" href="#new%28v%3AUInt16%29-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Create a version identifier from a major number, minor number, and
+optional compatability number.</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>Instance Method Detail</h2>
+  
+    <div class="entry-detail" id="to_io&#40;io&#41;-instance-method">
+      <div class="signature">
+        
+        def <strong>to_io</strong>(io)
+
+        <a class="method-permalink" href="#to_io%28io%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Write version as 16-bit, little-endian integer and return number
+of bytes written.</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_s&#40;io&#41;-instance-method">
+      <div class="signature">
+        
+        def <strong>to_s</strong>(io)
+
+        <a class="method-permalink" href="#to_s%28io%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Write version as string.</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>
