@@ -85,8 +85,28 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
-      <a href="Zip/WriterEntry.html">WriterEntry</a>
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Writers" data-name="zip::writers">
+      <a href="Zip/Writers.html">Writers</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/DirEntry" data-name="zip::writers::direntry">
+      <a href="Zip/Writers/DirEntry.html">DirEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/FileEntry" data-name="zip::writers::fileentry">
+      <a href="Zip/Writers/FileEntry.html">FileEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/WriterEntry" data-name="zip::writers::writerentry">
+      <a href="Zip/Writers/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -124,7 +144,7 @@ mem_io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">
 <span class="c"># read from &quot;foo.zip&quot;</span>
 <span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
   <span class="c"># read contents of &quot;bar.txt&quot; in &quot;foo.zip&quot; into mem_io</span>
-  zip[<span class="s">&quot;bar.txt&quot;</span>].read(mem_io)
+  zip[<span class="s">&quot;bar.txt&quot;</span>].write(mem_io)
 <span class="k">end</span></code></pre>
 
 <p>Writing to a zip file:</p>
@@ -260,7 +280,7 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
 <span class="c"># extract &quot;bar.txt&quot; from zip archive in Slice some_slice and</span>
 <span class="c"># save it to MemoryIO</span>
 <span class="t">Zip</span>.read(some_slice) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
-  zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)
+  zip[<span class="s">&quot;bar.txt&quot;</span>].write(io)
 <span class="k">end</span></code></pre></div>
       
       <br/>
@@ -286,7 +306,7 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
 
 <span class="c"># extract &quot;bar.txt&quot; from &quot;foo.zip&quot; and save it to MemoryIO</span>
 <span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
-  zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)
+  zip[<span class="s">&quot;bar.txt&quot;</span>].write(io)
 <span class="k">end</span></code></pre></div>
       
       <br/>
@@ -313,7 +333,7 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
 
 <span class="c"># read &quot;bar.txt&quot; from &quot;foo.zip&quot;</span>
 <span class="t">Zip</span>.read(<span class="t">File</span>.open(<span class="s">&quot;foo.zip&quot;</span>, <span class="s">&quot;rb&quot;</span>)) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
-  zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)
+  zip[<span class="s">&quot;bar.txt&quot;</span>].write(io)
 <span class="k">end</span></code></pre></div>
       
       <br/>

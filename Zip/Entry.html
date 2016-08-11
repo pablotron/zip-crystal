@@ -85,8 +85,28 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
-      <a href="../Zip/WriterEntry.html">WriterEntry</a>
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Writers" data-name="zip::writers">
+      <a href="../Zip/Writers.html">Writers</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/DirEntry" data-name="zip::writers::direntry">
+      <a href="../Zip/Writers/DirEntry.html">DirEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/FileEntry" data-name="zip::writers::fileentry">
+      <a href="../Zip/Writers/FileEntry.html">FileEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/WriterEntry" data-name="zip::writers::writerentry">
+      <a href="../Zip/Writers/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -184,35 +204,56 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       <li class="entry-summary">
         <a href="#comment%3AString-instance-method" class="signature"><strong>#comment</strong> : String</a>
         
+          <div class="summary"><p>Get comment for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>String</code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#compressed_size%3AUInt32-instance-method" class="signature"><strong>#compressed_size</strong> : UInt32</a>
+        
+          <div class="summary"><p>Get compressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#crc%3AUInt32-instance-method" class="signature"><strong>#crc</strong> : UInt32</a>
         
+          <div class="summary"><p>Get CRC-32 for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
-        <a href="#external_attr%3AUInt32-instance-method" class="signature"><strong>#external_attr</strong> : UInt32</a>
+        <a href="#dir%3F%3ABool-instance-method" class="signature"><strong>#dir?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns true if this entry a directory.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#external%3AUInt32-instance-method" class="signature"><strong>#external</strong> : UInt32</a>
+        
+          <div class="summary"><p>Get external attributes for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#extras%3AArray%28Zip%3A%3AExtra%29-instance-method" class="signature"><strong>#extras</strong> : Array(Zip::Extra)</a>
         
+          <div class="summary"><p>Get <code><a href="../Zip/Extra.html">Extra</a></code> data for this <code><a href="../Zip/Entry.html">Entry</a></code> as an <code>Array</code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#flags%3AUInt16-instance-method" class="signature"><strong>#flags</strong> : UInt16</a>
         
+          <div class="summary"><p>Get <code><a href="../Zip/GeneralFlags.html">GeneralFlags</a></code> for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
-        <a href="#internal_attr%3AUInt16-instance-method" class="signature"><strong>#internal_attr</strong> : UInt16</a>
+        <a href="#internal%3AUInt16-instance-method" class="signature"><strong>#internal</strong> : UInt16</a>
+        
+          <div class="summary"><p>Get internal attributes for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt16</code>.</p></div>
         
       </li>
     
@@ -226,49 +267,63 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       <li class="entry-summary">
         <a href="#method%3AZip%3A%3ACompressionMethod-instance-method" class="signature"><strong>#method</strong> : Zip::CompressionMethod</a>
         
+          <div class="summary"><p>Get <code><a href="../Zip/CompressionMethod.html">CompressionMethod</a></code> for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#path%3AString-instance-method" class="signature"><strong>#path</strong> : String</a>
+        
+          <div class="summary"><p>Get path for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>String</code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#pos%3AUInt32-instance-method" class="signature"><strong>#pos</strong> : UInt32</a>
         
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#read%28dst_io%3AIO%29%3AUInt32-instance-method" class="signature"><strong>#read</strong>(dst_io : IO) : UInt32</a>
-        
-          <div class="summary"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given <code>IO</code>.</p></div>
+          <div class="summary"><p>Get position for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#size%3AUInt32-instance-method" class="signature"><strong>#size</strong> : UInt32</a>
         
-          <div class="summary"><p>Return the uncompressed size of this entry in bytes.</p></div>
+          <div class="summary"><p>Get uncompressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#time%3ATime-instance-method" class="signature"><strong>#time</strong> : Time</a>
         
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#uncompressed_size%3AUInt32-instance-method" class="signature"><strong>#uncompressed_size</strong> : UInt32</a>
+          <div class="summary"><p>Get <code>Time</code> for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#version%3AUInt16-instance-method" class="signature"><strong>#version</strong> : UInt16</a>
         
+          <div class="summary"><p>Get <code><a href="../Zip/Version.html">Version</a></code> used to generate this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#version_needed%3AUInt16-instance-method" class="signature"><strong>#version_needed</strong> : UInt16</a>
+        
+          <div class="summary"><p>Get <code><a href="../Zip/Version.html">Version</a></code> needed to generate this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write%28path%3AString%29%3AUInt32-instance-method" class="signature"><strong>#write</strong>(path : String) : UInt32</a>
+        
+          <div class="summary"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given path <em>path</em> and return the number of bytes written.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write%28dst_io%3AIO%29%3AUInt32-instance-method" class="signature"><strong>#write</strong>(dst_io : IO) : UInt32</a>
+        
+          <div class="summary"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given <code>IO</code>.</p></div>
         
       </li>
     
@@ -352,6 +407,15 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
         <a class="method-permalink" href="#comment%3AString-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get comment for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>String</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print comment for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> comment: </span><span class="i">#{</span></span>e.comment<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -365,6 +429,15 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
 
         <a class="method-permalink" href="#compressed_size%3AUInt32-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Get compressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print compressed size for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> compressed size: </span><span class="i">#{</span></span>e.compressed_size<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -380,19 +453,60 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
         <a class="method-permalink" href="#crc%3AUInt32-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get CRC-32 for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print crc for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> CRC-32: </span><span class="i">#{</span></span>e.crc<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
       </div>
     </div>
   
-    <div class="entry-detail" id="external_attr:UInt32-instance-method">
+    <div class="entry-detail" id="dir?:Bool-instance-method">
       <div class="signature">
         
-        def <strong>external_attr</strong> : UInt32
+        def <strong>dir?</strong> : Bool
 
-        <a class="method-permalink" href="#external_attr%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#dir%3F%3ABool-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Returns true if this entry a directory.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="k">type</span> <span class="o">=</span> zip[<span class="s">&quot;some-dir/&quot;</span>].dir? ? <span class="s">&quot;directory&quot;</span> : <span class="s">&quot;file&quot;</span>
+  puts <span class="s">&quot;</span><span class="i">#{</span></span>path<span class="s"><span class="i">}</span> is a </span><span class="i">#{</span></span><span class="k">type</span><span class="s"><span class="i">}</span>&quot;</span>
+<span class="k">end</span></code></pre></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="external:UInt32-instance-method">
+      <div class="signature">
+        
+        def <strong>external</strong> : UInt32
+
+        <a class="method-permalink" href="#external%3AUInt32-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Get external attributes for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print external attributes for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> external attributes: </span><span class="i">#{</span></span>e.external<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -408,6 +522,15 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
         <a class="method-permalink" href="#extras%3AArray%28Zip%3A%3AExtra%29-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get <code><a href="../Zip/Extra.html">Extra</a></code> data for this <code><a href="../Zip/Entry.html">Entry</a></code> as an <code>Array</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print number of extra data items for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> extras: </span><span class="i">#{</span></span>e.extras.size<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -422,19 +545,37 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
         <a class="method-permalink" href="#flags%3AUInt16-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get <code><a href="../Zip/GeneralFlags.html">GeneralFlags</a></code> for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print flags for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> flags: </span><span class="i">#{</span></span>e.flags<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
       </div>
     </div>
   
-    <div class="entry-detail" id="internal_attr:UInt16-instance-method">
+    <div class="entry-detail" id="internal:UInt16-instance-method">
       <div class="signature">
         
-        def <strong>internal_attr</strong> : UInt16
+        def <strong>internal</strong> : UInt16
 
-        <a class="method-permalink" href="#internal_attr%3AUInt16-instance-method">#</a>
+        <a class="method-permalink" href="#internal%3AUInt16-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Get internal attributes for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt16</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print internal attributes for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> internal attributes: </span><span class="i">#{</span></span>e.internal<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -482,6 +623,15 @@ file's entry in the Central Directory, and this method returns the
         <a class="method-permalink" href="#method%3AZip%3A%3ACompressionMethod-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get <code><a href="../Zip/CompressionMethod.html">CompressionMethod</a></code> for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print compression method for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> compression method: </span><span class="i">#{</span></span>e.method<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -495,6 +645,15 @@ file's entry in the Central Directory, and this method returns the
 
         <a class="method-permalink" href="#path%3AString-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Get path for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>String</code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print uncompressed size for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -510,33 +669,12 @@ file's entry in the Central Directory, and this method returns the
         <a class="method-permalink" href="#pos%3AUInt32-instance-method">#</a>
       </div>
       
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="read&#40;dst_io:IO&#41;:UInt32-instance-method">
-      <div class="signature">
-        
-        def <strong>read</strong>(dst_io : IO) : UInt32
+        <div class="doc"><p>Get position for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
 
-        <a class="method-permalink" href="#read%28dst_io%3AIO%29%3AUInt32-instance-method">#</a>
-      </div>
-      
-        <div class="doc"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given <code>IO</code>.</p>
-
-<p>Raises an <code><a href="../Zip/Error.html">Error</a></code> if the file contents could not be read or if the
-compression method is unsupported.</p>
-
-<p>Example:</p>
-
-<pre><code><span class="c"># open &quot;output-bar.txt&quot; for writing</span>
-<span class="t">File</span>.open(<span class="s">&quot;output-bar.txt&quot;</span>, <span class="s">&quot;wb&quot;</span>) <span class="k">do</span> <span class="o">|</span>io<span class="o">|</span>
-  <span class="c"># open archive &quot;./foo.zip&quot;</span>
-  <span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
-    <span class="c"># write contents of &quot;bar.txt&quot; to &quot;output-bar.txt&quot;</span>
-    zip[<span class="s">&quot;foo.txt&quot;</span>].read(io)
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print position for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> position: </span><span class="i">#{</span></span>e.pos<span class="s"><span class="i">}</span>&quot;</span>
   <span class="k">end</span>
 <span class="k">end</span></code></pre></div>
       
@@ -554,13 +692,13 @@ compression method is unsupported.</p>
         <a class="method-permalink" href="#size%3AUInt32-instance-method">#</a>
       </div>
       
-        <div class="doc"><p>Return the uncompressed size of this entry in bytes.</p>
-
-<p>Example:</p>
+        <div class="doc"><p>Get uncompressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
 
 <pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
-  size <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>].size
-  puts <span class="s">&quot;bar.txt is </span><span class="i">#{</span></span>size<span class="s"><span class="i">}</span> bytes.&quot;</span>
+  <span class="c"># print uncompressed size for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> uncompressed size: </span><span class="i">#{</span></span>e.size<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
 <span class="k">end</span></code></pre></div>
       
       <br/>
@@ -577,19 +715,14 @@ compression method is unsupported.</p>
         <a class="method-permalink" href="#time%3ATime-instance-method">#</a>
       </div>
       
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="uncompressed_size:UInt32-instance-method">
-      <div class="signature">
-        
-        def <strong>uncompressed_size</strong> : UInt32
+        <div class="doc"><p>Get <code>Time</code> for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
 
-        <a class="method-permalink" href="#uncompressed_size%3AUInt32-instance-method">#</a>
-      </div>
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print time for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> time: </span><span class="i">#{</span></span>e.time<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -605,6 +738,15 @@ compression method is unsupported.</p>
         <a class="method-permalink" href="#version%3AUInt16-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get <code><a href="../Zip/Version.html">Version</a></code> used to generate this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print version used for each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> version used: </span><span class="i">#{</span></span>e.version<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -618,6 +760,76 @@ compression method is unsupported.</p>
 
         <a class="method-permalink" href="#version_needed%3AUInt16-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Get <code><a href="../Zip/Version.html">Version</a></code> needed to generate this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print version needed to extract each entry</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> version needed: </span><span class="i">#{</span></span>e.version_needed<span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write&#40;path:String&#41;:UInt32-instance-method">
+      <div class="signature">
+        
+        def <strong>write</strong>(path : String) : UInt32
+
+        <a class="method-permalink" href="#write%28path%3AString%29%3AUInt32-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given path <em>path</em> and return the
+number of bytes written.</p>
+
+<p>Raises an <code><a href="../Zip/Error.html">Error</a></code> if the file contents could not be read or if the
+compression method is unsupported.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="c"># open &quot;output-bar.txt&quot; for writing</span>
+<span class="t">File</span>.open(<span class="s">&quot;output-bar.txt&quot;</span>, <span class="s">&quot;wb&quot;</span>) <span class="k">do</span> <span class="o">|</span>io<span class="o">|</span>
+  <span class="c"># open archive &quot;./foo.zip&quot;</span>
+  <span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+    <span class="c"># write contents of &quot;bar.txt&quot; to &quot;output-bar.txt&quot;</span>
+    zip[<span class="s">&quot;foo.txt&quot;</span>].write(io)
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write&#40;dst_io:IO&#41;:UInt32-instance-method">
+      <div class="signature">
+        
+        def <strong>write</strong>(dst_io : IO) : UInt32
+
+        <a class="method-permalink" href="#write%28dst_io%3AIO%29%3AUInt32-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given <code>IO</code>.</p>
+
+<p>Raises an <code><a href="../Zip/Error.html">Error</a></code> if the file contents could not be read or if the
+compression method is unsupported.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="c"># open &quot;output-bar.txt&quot; for writing</span>
+<span class="t">File</span>.open(<span class="s">&quot;output-bar.txt&quot;</span>, <span class="s">&quot;wb&quot;</span>) <span class="k">do</span> <span class="o">|</span>io<span class="o">|</span>
+  <span class="c"># open archive &quot;./foo.zip&quot;</span>
+  <span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+    <span class="c"># write contents of &quot;bar.txt&quot; to &quot;output-bar.txt&quot;</span>
+    zip[<span class="s">&quot;foo.txt&quot;</span>].write(io)
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>

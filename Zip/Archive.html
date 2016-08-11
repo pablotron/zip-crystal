@@ -85,8 +85,28 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
-      <a href="../Zip/WriterEntry.html">WriterEntry</a>
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Writers" data-name="zip::writers">
+      <a href="../Zip/Writers.html">Writers</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/DirEntry" data-name="zip::writers::direntry">
+      <a href="../Zip/Writers/DirEntry.html">DirEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/FileEntry" data-name="zip::writers::fileentry">
+      <a href="../Zip/Writers/FileEntry.html">FileEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/WriterEntry" data-name="zip::writers::writerentry">
+      <a href="../Zip/Writers/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -195,30 +215,42 @@
       <li class="entry-summary">
         <a href="#comment%3AString-instance-method" class="signature"><strong>#comment</strong> : String</a>
         
+          <div class="summary"><p>Get the <code><a href="../Zip/Archive.html">Archive</a></code> comment as a String.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#each%28%2Aargs%2C%2A%2Aoptions%2C%26block%29-instance-method" class="signature"><strong>#each</strong>(*args, **options, &block)</a>
+        
+          <div class="summary"><p>Iterate over the entries in this <code><a href="../Zip/Archive.html">Archive</a></code>, or, if called without a block, return a lazy iterator.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#each%28%2Aargs%2C%2A%2Aoptions%29-instance-method" class="signature"><strong>#each</strong>(*args, **options)</a>
         
+          <div class="summary"><p>Iterate over the entries in this <code><a href="../Zip/Archive.html">Archive</a></code>, or, if called without a block, return a lazy iterator.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#entries%3AArray%28Zip%3A%3AEntry%29-instance-method" class="signature"><strong>#entries</strong> : Array(Zip::Entry)</a>
+        
+          <div class="summary"><p>Return an array of entries in this Archive.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#size%28%2Aargs%2C%2A%2Aoptions%2C%26block%29-instance-method" class="signature"><strong>#size</strong>(*args, **options, &block)</a>
         
+          <div class="summary"><p>Return the number of entries in this <code><a href="../Zip/Archive.html">Archive</a></code>.</p></div>
+        
       </li>
     
       <li class="entry-summary">
         <a href="#size%28%2Aargs%2C%2A%2Aoptions%29-instance-method" class="signature"><strong>#size</strong>(*args, **options)</a>
+        
+          <div class="summary"><p>Return the number of entries in this <code><a href="../Zip/Archive.html">Archive</a></code>.</p></div>
         
       </li>
     
@@ -298,9 +330,9 @@
 
 <p>Example:</p>
 
-<pre><code><span class="c"># get bar.txt and read it into memory io</span>
+<pre><code><span class="c"># get bar.txt and write it into memory io</span>
 io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
-zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)</code></pre></div>
+zip[<span class="s">&quot;bar.txt&quot;</span>].write(io)</code></pre></div>
       
       <br/>
       <div>
@@ -320,9 +352,9 @@ zip[<span class="s">&quot;bar.txt&quot;</span>].read(io)</code></pre></div>
 
 <p>Example:</p>
 
-<pre><code><span class="c"># read third entry from archive into memory io</span>
+<pre><code><span class="c"># write contents of third entry from archive into memory io</span>
 io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
-zip[<span class="n">2</span>].read(io)</code></pre></div>
+zip[<span class="n">2</span>].write(io)</code></pre></div>
       
       <br/>
       <div>
@@ -342,10 +374,10 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
 
 <p>Example:</p>
 
-<pre><code><span class="c"># read third entry from archive into memory io</span>
+<pre><code><span class="c"># write contents of third entry from archive into memory io</span>
 <span class="k">if</span> e <span class="o">=</span> zip[<span class="n">2</span>]?
   io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
-  e.read(io)
+  e.write(io)
 <span class="k">end</span></code></pre></div>
       
       <br/>
@@ -366,10 +398,10 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
 
 <p>Example:</p>
 
-<pre><code><span class="c"># read bar.txt into memory io if it exists</span>
+<pre><code><span class="c"># write contents of &quot;bar.txt&quot; into memory io if it exists</span>
 <span class="k">if</span> e <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>]?
   io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
-  e.read(io)
+  e.write(io)
 <span class="k">end</span></code></pre></div>
       
       <br/>
@@ -386,6 +418,15 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
         <a class="method-permalink" href="#comment%3AString-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Get the <code><a href="../Zip/Archive.html">Archive</a></code> comment as a String.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># print archive comment</span>
+  puts <span class="s">&quot;comment: </span><span class="i">#{</span></span>zip.comment<span class="s"><span class="i">}</span>&quot;</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -399,6 +440,18 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
 
         <a class="method-permalink" href="#each%28%2Aargs%2C%2A%2Aoptions%2C%26block%29-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Iterate over the entries in this <code><a href="../Zip/Archive.html">Archive</a></code>, or, if called without
+a block, return a lazy iterator.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    <span class="k">type</span> <span class="o">=</span> e.dir? ? <span class="s">&quot;directory&quot;</span> : <span class="s">&quot;file&quot;</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> is a </span><span class="i">#{</span></span><span class="k">type</span><span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -414,6 +467,18 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
         <a class="method-permalink" href="#each%28%2Aargs%2C%2A%2Aoptions%29-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Iterate over the entries in this <code><a href="../Zip/Archive.html">Archive</a></code>, or, if called without
+a block, return a lazy iterator.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  zip.each <span class="k">do</span> <span class="o">|</span>e<span class="o">|</span>
+    <span class="k">type</span> <span class="o">=</span> e.dir? ? <span class="s">&quot;directory&quot;</span> : <span class="s">&quot;file&quot;</span>
+    puts <span class="s">&quot;</span><span class="i">#{</span></span>e.path<span class="s"><span class="i">}</span> is a </span><span class="i">#{</span></span><span class="k">type</span><span class="s"><span class="i">}</span>&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -427,6 +492,15 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
 
         <a class="method-permalink" href="#entries%3AArray%28Zip%3A%3AEntry%29-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Return an array of entries in this Archive.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># get an array of entries in this archive</span>
+  entries <span class="o">=</span> zip.entries
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>
@@ -442,6 +516,14 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
         <a class="method-permalink" href="#size%28%2Aargs%2C%2A%2Aoptions%2C%26block%29-instance-method">#</a>
       </div>
       
+        <div class="doc"><p>Return the number of entries in this <code><a href="../Zip/Archive.html">Archive</a></code>.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  puts <span class="s">&quot;foo.zip has </span><span class="i">#{</span></span>zip.size<span class="s"><span class="i">}</span> entries&quot;</span>
+<span class="k">end</span></code></pre></div>
+      
       <br/>
       <div>
         
@@ -455,6 +537,14 @@ zip[<span class="n">2</span>].read(io)</code></pre></div>
 
         <a class="method-permalink" href="#size%28%2Aargs%2C%2A%2Aoptions%29-instance-method">#</a>
       </div>
+      
+        <div class="doc"><p>Return the number of entries in this <code><a href="../Zip/Archive.html">Archive</a></code>.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  puts <span class="s">&quot;foo.zip has </span><span class="i">#{</span></span>zip.size<span class="s"><span class="i">}</span> entries&quot;</span>
+<span class="k">end</span></code></pre></div>
       
       <br/>
       <div>

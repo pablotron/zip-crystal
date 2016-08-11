@@ -85,8 +85,28 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
-      <a href="../Zip/WriterEntry.html">WriterEntry</a>
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Writers" data-name="zip::writers">
+      <a href="../Zip/Writers.html">Writers</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/DirEntry" data-name="zip::writers::direntry">
+      <a href="../Zip/Writers/DirEntry.html">DirEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/FileEntry" data-name="zip::writers::fileentry">
+      <a href="../Zip/Writers/FileEntry.html">FileEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/WriterEntry" data-name="zip::writers::writerentry">
+      <a href="../Zip/Writers/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -119,6 +139,12 @@ given file and to indicate the format of the external file
 attributes.</p>
 
 <p>See section 4.4.3.2 of APPNOTE.TXT for version details.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="c"># create version and print it out</span>
+version <span class="o">=</span> <span class="t">Zip</span><span class="t">::</span><span class="t">Version</span>.<span class="k">new</span>(<span class="n">5</span>, <span class="n">0</span>)
+puts <span class="s">&quot;version &#61; </span><span class="i">#{</span></span>version<span class="s"><span class="i">}</span>&quot;</span></code></pre>
 
 
 
@@ -239,7 +265,13 @@ attributes.</p>
       </div>
       
         <div class="doc"><p>Create a version identifier from a major number, minor number, and
-optional compatability number.</p></div>
+optional compatability number.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="c"># create version and print it out</span>
+version <span class="o">=</span> <span class="t">Zip</span><span class="t">::</span><span class="t">Version</span>.<span class="k">new</span>(<span class="n">5</span>, <span class="n">0</span>)
+puts <span class="s">&quot;version &#61; </span><span class="i">#{</span></span>version<span class="s"><span class="i">}</span>&quot;</span></code></pre></div>
       
       <br/>
       <div>
@@ -256,7 +288,10 @@ optional compatability number.</p></div>
       </div>
       
         <div class="doc"><p>Create a version identifier from a major number, minor number, and
-optional compatability number.</p></div>
+optional compatability number.</p>
+
+<p>You shouldn't need to call this constructor directly; it is used
+by internal classes.</p></div>
       
       <br/>
       <div>
@@ -278,7 +313,10 @@ optional compatability number.</p></div>
       </div>
       
         <div class="doc"><p>Write version as 16-bit, little-endian integer and return number
-of bytes written.</p></div>
+of bytes written.</p>
+
+<p>You shouldn't need to call this method directly; it is used by
+internal classes.</p></div>
       
       <br/>
       <div>
@@ -294,7 +332,11 @@ of bytes written.</p></div>
         <a class="method-permalink" href="#to_s%28io%29-instance-method">#</a>
       </div>
       
-        <div class="doc"><p>Write version as string.</p></div>
+        <div class="doc"><p>Write version as string.</p>
+
+<pre><code><span class="c"># create version and print it out</span>
+version <span class="o">=</span> <span class="t">Zip</span><span class="t">::</span><span class="t">Version</span>.<span class="k">new</span>(<span class="n">5</span>, <span class="n">0</span>)
+puts <span class="s">&quot;version &#61; </span><span class="i">#{</span></span>version<span class="s"><span class="i">}</span>&quot;</span></code></pre></div>
       
       <br/>
       <div>

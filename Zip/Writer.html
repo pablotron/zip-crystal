@@ -85,8 +85,28 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/WriterEntry" data-name="zip::writerentry">
-      <a href="../Zip/WriterEntry.html">WriterEntry</a>
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Writers" data-name="zip::writers">
+      <a href="../Zip/Writers.html">Writers</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/DirEntry" data-name="zip::writers::direntry">
+      <a href="../Zip/Writers/DirEntry.html">DirEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/FileEntry" data-name="zip::writers::fileentry">
+      <a href="../Zip/Writers/FileEntry.html">FileEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/WriterEntry" data-name="zip::writers::writerentry">
+      <a href="../Zip/Writers/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -111,6 +131,13 @@
 
 
 
+
+  <h2>Overview</h2>
+
+  <p>Zip file writer.</p>
+
+<p>You shouldn't need to instantiate this class directly; use
+<code><a href="../Zip.html#write%28io%3AIO%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method">Zip.write</a>()</code> instead.</p>
 
 
 
@@ -160,6 +187,13 @@
         <a href="#add%28path%3AString%2Cdata%3AString%7CBytes%2Cmethod%3ACompressionMethod%3D%3Cspanclass%3D%22t%22%3ECompressionMethod%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFLATE%3C%2Fspan%3E%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt32-instance-method" class="signature"><strong>#add</strong>(path : String, data : String | Bytes, method : CompressionMethod = <span class="t">CompressionMethod</span><span class="t">::</span><span class="t">DEFLATE</span>, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>) : UInt32</a>
         
           <div class="summary"><p>Write <em>data</em> to <em>path</em> in archive and return number of bytes written.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#add_dir%28path%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt32-instance-method" class="signature"><strong>#add_dir</strong>(path : String, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>) : UInt32</a>
+        
+          <div class="summary"><p>Add empty directory to archive as <em>path</em> and return number of bytes written.</p></div>
         
       </li>
     
@@ -287,6 +321,31 @@ written.</p>
 <span class="t">Zip</span>.write(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
   <span class="c"># add &quot;bar.txt&quot; with contents &quot;hello&#33;&quot;</span>
   zip.add(<span class="s">&quot;bar.txt&quot;</span>, <span class="s">&quot;hello&#33;&quot;</span>)
+<span class="k">end</span></code></pre></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="add_dir&#40;path:String,time:Time&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Time&lt;/span&gt;.now,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&#41;:UInt32-instance-method">
+      <div class="signature">
+        
+        def <strong>add_dir</strong>(path : String, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>) : UInt32
+
+        <a class="method-permalink" href="#add_dir%28path%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt32-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Add empty directory to archive as <em>path</em> and return number of
+bytes written.</p>
+
+<p>Example:</p>
+
+<pre><code><span class="c"># write to &quot;foo.zip&quot;</span>
+<span class="t">Zip</span>.write(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
+  <span class="c"># add a directory named &quot;example-dir&quot;</span>
+  zip.add_dir(<span class="s">&quot;example-dir&quot;</span>)
 <span class="k">end</span></code></pre></div>
       
       <br/>
