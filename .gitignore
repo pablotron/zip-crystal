@@ -2,7 +2,7 @@
 /libs/
 /.crystal/
 /.shards/
-/spec/test-*.zip
+/spec/test*.zip
 
 
 # Libraries don't need dependency lock
