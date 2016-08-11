@@ -1502,13 +1502,11 @@ module Zip
     #     Zip.read("foo.zip") do |zip|
     #       # print uncompressed size for each entry
     #       zip.each do |e|
-    #         puts "#{e.path} uncompressed size: #{e.uncompressed_size}"
+    #         puts "#{e.path} uncompressed size: #{e.size}"
     #       end
     #     end
     #
-    # See also: `#size`
-    #
-    getter :uncompressed_size
+    getter :size
 
     #
     # Get path for this `Entry` as a `String`.
@@ -1552,11 +1550,11 @@ module Zip
     #     Zip.read("foo.zip") do |zip|
     #       # print internal attributes for each entry
     #       zip.each do |e|
-    #         puts "#{e.path} internal attributes: #{e.internal_attr}"
+    #         puts "#{e.path} internal attributes: #{e.internal}"
     #       end
     #     end
     #
-    getter :internal_attr
+    getter :internal
 
     #
     # Get external attributes for this `Entry` as a `UInt32`.
@@ -1564,11 +1562,11 @@ module Zip
     #     Zip.read("foo.zip") do |zip|
     #       # print external attributes for each entry
     #       zip.each do |e|
-    #         puts "#{e.path} external attributes: #{e.external_attr}"
+    #         puts "#{e.path} external attributes: #{e.external}"
     #       end
     #     end
     #
-    getter :external_attr
+    getter :external
 
     #
     # Get position for this `Entry` as a `UInt32`.
@@ -1647,7 +1645,7 @@ module Zip
       # read crc and lengths
       @crc = UInt32.from_io(head_mem_io, LE).as(UInt32)
       @compressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
-      @uncompressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @size = UInt32.from_io(head_mem_io, LE).as(UInt32)
 
       # read lengths
       @path_len = UInt16.from_io(head_mem_io, LE).not_nil!.as(UInt16)
@@ -1658,8 +1656,8 @@ module Zip
       @disk_start = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
       # read attributes and position
-      @internal_attr = UInt16.from_io(head_mem_io, LE).as(UInt16)
-      @external_attr = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @internal = UInt16.from_io(head_mem_io, LE).as(UInt16)
+      @external = UInt32.from_io(head_mem_io, LE).as(UInt32)
       @pos = UInt32.from_io(head_mem_io, LE).as(UInt32)
 
       # close memory io
@@ -1696,21 +1694,7 @@ module Zip
     #     end
     #
     def dir? : Bool
-      (@external_attr & 0x01) != 0
-    end
-
-    #
-    # Return the uncompressed size of this entry in bytes.
-    #
-    # Example:
-    #
-    #     Zip.read("foo.zip") do |zip|
-    #       size = zip["bar.txt"].size
-    #       puts "bar.txt is #{size} bytes."
-    #     end
-    #
-    def size : UInt32
-      @uncompressed_size
+      (@external & 0x01) != 0
     end
 
     # :nodoc:
@@ -1780,15 +1764,15 @@ module Zip
 
       case @method
       when CompressionMethod::NONE
-        decompress_none(@io, dst_io, @compressed_size, @uncompressed_size)
+        decompress_none(@io, dst_io, @compressed_size, @size)
       when CompressionMethod::DEFLATE
-        decompress_deflate(@io, dst_io, @compressed_size, @uncompressed_size)
+        decompress_deflate(@io, dst_io, @compressed_size, @size)
       else
         raise Error.new("unsupported method: #{@method}")
       end
 
       # return number of bytes written
-      @uncompressed_size
+      @size
     end
 
     #
