@@ -90,6 +90,8 @@ describe Zip do
 
   it "reads all an archive's compressed entries" do
     Zip.read(File.join(TEST_DIR, "test-many.zip")) do |zip|
+      puts "file has #{zip.size} entries"
+
       zip.each do |e|
 
         if e.dir?

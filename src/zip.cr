@@ -1768,7 +1768,29 @@ module Zip
     include Enumerable(Entry)
     include Iterable
 
-    getter :entries, :comment
+    #
+    # Return an array of entries in this Archive.
+    #
+    # Example:
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # get an array of entries in this archive
+    #       entries = zip.entries
+    #     end
+    #
+    getter :entries
+
+    #
+    # Get the `Archive` comment as a String.
+    #
+    # Example:
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       # print archive comment
+    #       puts "comment: #{zip.comment}"
+    #     end
+    #
+    getter :comment
 
     #
     # Create new Zip::Archive from input Zip::Source.
@@ -1920,7 +1942,30 @@ module Zip
       @entries[id]?
     end
 
+    #
+    # Iterate over the entries in this `Archive`, or, if called without
+    # a block, return a lazy iterator.
+    #
+    # Example:
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       zip.each do |e|
+    #         type = e.dir? ? "directory" : "file"
+    #         puts "#{e.path} is a #{type}"
+    #       end
+    #     end
+    #
     delegate each, to: @entries
+
+    #
+    # Return the number of entries in this `Archive`.
+    #
+    # Example:
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       puts "foo.zip has #{zip.size} entries"
+    #     end
+    #
     delegate size, to: @entries
 
     ###################
