@@ -11,7 +11,7 @@ require "zlib"
 # [x] convert datetime to Time
 # [x] add size to Entry
 # [x] Version
-# [ ] directories
+# [x] directories
 # [ ] full tests
 # [ ] zip64
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
@@ -1517,6 +1517,20 @@ module Zip
 
       # close data memory io
       data_mem_io.close
+    end
+
+    #
+    # Returns true if this entry a directory.
+    #
+    # Example:
+    #
+    #     Zip.read("foo.zip") do |zip|
+    #       type = zip["some-dir/"].dir? ? "directory" : "file"
+    #       puts "#{path} is a #{type}"
+    #     end
+    #
+    def dir? : Bool
+      (@external_attr & 0x01) != 0
     end
 
     #

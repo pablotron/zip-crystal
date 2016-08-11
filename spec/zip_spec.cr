@@ -91,12 +91,15 @@ describe Zip do
   it "reads all an archive's compressed entries" do
     Zip.read(File.join(TEST_DIR, "test-many.zip")) do |zip|
       zip.each do |e|
-        pp e.path
 
-        io = MemoryIO.new
-        # e.write(STDOUT)
-        e.write(io)
-        io.close
+        if e.dir?
+          puts "#{e.path} is a directory"
+        else
+          io = MemoryIO.new
+          # e.write(STDOUT)
+          e.write(io)
+          io.close
+        end
       end
     end
   end
