@@ -31,22 +31,22 @@ require "zlib"
 #
 # Reading from a zip file:
 #
-#   # create output MemoryIO
-#   mem_io = MemoryIO.new
+#     # create output MemoryIO
+#     mem_io = MemoryIO.new
 #
-#   # read from "foo.zip"
-#   Zip.read("foo.zip") do |zip|
-#     # read contents of "bar.txt" in "foo.zip" into mem_io
-#     zip["bar.txt"].read(mem_io)
-#   end
+#     # read from "foo.zip"
+#     Zip.read("foo.zip") do |zip|
+#       # read contents of "bar.txt" in "foo.zip" into mem_io
+#       zip["bar.txt"].read(mem_io)
+#     end
 #
 # Writing to a zip file:
 #
-#   # write to "foo.zip"
-#   Zip.write("foo.zip") do |zip|
-#     # create "bar.txt" with contents "hello!"
-#     zip.add("bar.txt", "hello!")
-#   end
+#     # write to "foo.zip"
+#     Zip.write("foo.zip") do |zip|
+#       # create "bar.txt" with contents "hello!"
+#       zip.add("bar.txt", "hello!")
+#     end
 #
 module Zip
   #
@@ -290,6 +290,9 @@ module Zip
 
   #
   # Wrapper class for exceptions.
+  #
+  # You shouldn't need to instantiate this class directly; it is raised
+  # by other classes on error.
   #
   class Error < Exception
   end
@@ -963,13 +966,13 @@ module Zip
     #
     # Example:
     #
-    #   Zip.write("foo.zip") do |zip|
-    #     # add "bar.txt"
-    #     zip.add_file("bar.txt", "/path/to/bar.txt")
+    #     Zip.write("foo.zip") do |zip|
+    #       # add "bar.txt"
+    #       zip.add_file("bar.txt", "/path/to/bar.txt")
     #
-    #     # print number of bytes written so far
-    #     puts "bytes written so far: #{zip.bytes_written}"
-    #   end
+    #       # print number of bytes written so far
+    #       puts "bytes written so far: #{zip.bytes_written}"
+    #     end
     #
     def bytes_written : UInt32
       # return total number of bytes written
@@ -1005,14 +1008,14 @@ module Zip
     #
     # Example:
     #
-    #   # create IO from "/path/to/bar.txt"
-    #   File.open("/path/to/bar.txt, "rb") do |io|
-    #     # write to "foo.zip"
-    #     Zip.write("foo.zip") do |zip|
-    #       # add "bar.txt" with contents of given IO
-    #       zip.add("bar.txt", io)
+    #     # create IO from "/path/to/bar.txt"
+    #     File.open("/path/to/bar.txt, "rb") do |io|
+    #       # write to "foo.zip"
+    #       Zip.write("foo.zip") do |zip|
+    #         # add "bar.txt" with contents of given IO
+    #         zip.add("bar.txt", io)
+    #       end
     #     end
-    #   end
     #
     def add(
       path    : String,
@@ -1053,11 +1056,11 @@ module Zip
     #
     # Example:
     #
-    #   # write to "foo.zip"
-    #   Zip.write("foo.zip") do |zip|
-    #     # add "bar.txt" with contents "hello!"
-    #     zip.add("bar.txt", "hello!")
-    #   end
+    #     # write to "foo.zip"
+    #     Zip.write("foo.zip") do |zip|
+    #       # add "bar.txt" with contents "hello!"
+    #       zip.add("bar.txt", "hello!")
+    #     end
     #
     def add(
       path    : String,
@@ -1075,11 +1078,11 @@ module Zip
     #
     # Example:
     #
-    #   # write to "foo.zip"
-    #   Zip.write("foo.zip") do |zip|
-    #     # add local file "/path/to/bar.txt" as "bar.txt"
-    #     zip.add_file("bar.txt", "/path/to/bar.txt")
-    #   end
+    #     # write to "foo.zip"
+    #     Zip.write("foo.zip") do |zip|
+    #       # add local file "/path/to/bar.txt" as "bar.txt"
+    #       zip.add_file("bar.txt", "/path/to/bar.txt")
+    #     end
     #
     def add_file(
       path      : String,
@@ -1150,13 +1153,13 @@ module Zip
   #
   # Example:
   #
-  #   # create output IO
-  #   File.open("foo.zip", "wb") do |io|
-  #     Zip.write(io) do |zip|
-  #       # add "bar.txt" with contents "hello!"
-  #       zip.add("bar.txt", "hello!")
+  #     # create output IO
+  #     File.open("foo.zip", "wb") do |io|
+  #       Zip.write(io) do |zip|
+  #         # add "bar.txt" with contents "hello!"
+  #         zip.add("bar.txt", "hello!")
+  #       end
   #     end
-  #   end
   #
   def self.write(
     io      : IO,
@@ -1187,11 +1190,11 @@ module Zip
   #
   # Example:
   #
-  #   # create "foo.zip"
-  #   Zip.write("foo.zip") do |zip|
-  #     # add "bar.txt" with contents "hello!"
-  #     zip.add("bar.txt", "hello!")
-  #   end
+  #     # create "foo.zip"
+  #     Zip.write("foo.zip") do |zip|
+  #       # add "bar.txt" with contents "hello!"
+  #       zip.add("bar.txt", "hello!")
+  #     end
   #
   def self.write(
     path    : String,
@@ -1237,11 +1240,11 @@ module Zip
   #
   # Example:
   #
-  #   # open "foo.zip"
-  #   Zip.read("foo.zip") do |zip|
-  #     # get extra data associated with "bar.txt"
-  #     extras = zip["bar.txt"].extras
-  #   end
+  #     # open "foo.zip"
+  #     Zip.read("foo.zip") do |zip|
+  #       # get extra data associated with "bar.txt"
+  #       extras = zip["bar.txt"].extras
+  #     end
   #
   class Extra
     property :code, :data
@@ -1273,17 +1276,17 @@ module Zip
   #
   # Example:
   #
-  #   # create MemoryIO
-  #   io = MemoryIO.new
+  #     # create MemoryIO
+  #     io = MemoryIO.new
   #
-  #   # open "foo.zip"
-  #   Zip.read("foo.zip") do |zip|
-  #     # get "bar.txt" entry from "foo.zip"
-  #     e = zip["bar.txt"]
+  #     # open "foo.zip"
+  #     Zip.read("foo.zip") do |zip|
+  #       # get "bar.txt" entry from "foo.zip"
+  #       e = zip["bar.txt"]
   #
-  #     # read contents of "bar.txt" into io
-  #     e.read(io)
-  #   end
+  #       # read contents of "bar.txt" into io
+  #       e.read(io)
+  #     end
   #
   class Entry
     include TimeHelper
@@ -1402,10 +1405,10 @@ module Zip
     #
     # Example:
     #
-    #   Zip.read("foo.zip") do |zip|
-    #     size = zip["bar.txt"].size
-    #     puts "bar.txt is #{size} bytes."
-    #   end
+    #     Zip.read("foo.zip") do |zip|
+    #       size = zip["bar.txt"].size
+    #       puts "bar.txt is #{size} bytes."
+    #     end
     #
     def size : UInt32
       @uncompressed_size
@@ -1435,14 +1438,14 @@ module Zip
     #
     # Example:
     #
-    #   # open "output-bar.txt" for writing
-    #   File.open("output-bar.txt", "wb") do |io|
-    #     # open archive "./foo.zip"
-    #     Zip.read("foo.zip") do |zip|
-    #       # write contents of "bar.txt" to "output-bar.txt"
-    #       zip["foo.txt"].read(io)
+    #     # open "output-bar.txt" for writing
+    #     File.open("output-bar.txt", "wb") do |io|
+    #       # open archive "./foo.zip"
+    #       Zip.read("foo.zip") do |zip|
+    #         # write contents of "bar.txt" to "output-bar.txt"
+    #         zip["foo.txt"].read(io)
+    #       end
     #     end
-    #   end
     #
     def read(dst_io : IO) : UInt32
       # create buffer for local header
@@ -1502,11 +1505,11 @@ module Zip
     #
     # Example:
     #
-    #   # open "./foo.zip"
-    #   Zip.read("./foo.zip") do |zip|
-    #     # get array of local extra attributes from "bar.txt"
-    #     extras = zip["bar.txt"].local_extras
-    #   end
+    #     # open "./foo.zip"
+    #     Zip.read("./foo.zip") do |zip|
+    #       # get array of local extra attributes from "bar.txt"
+    #       extras = zip["bar.txt"].local_extras
+    #     end
     #
     def local_extras : Array(Extra)
       unless @local_extras
@@ -1709,9 +1712,9 @@ module Zip
     #
     # Example:
     #
-    #   # get bar.txt and read it into memory io
-    #   io = MemoryIO.new
-    #   zip["bar.txt"].read(io)
+    #     # get bar.txt and read it into memory io
+    #     io = MemoryIO.new
+    #     zip["bar.txt"].read(io)
     #
     def [](path : String) : Entry
       paths[path]
@@ -1722,11 +1725,11 @@ module Zip
     #
     # Example:
     #
-    #   # read bar.txt into memory io if it exists
-    #   if e = zip["bar.txt"]?
-    #     io = MemoryIO.new
-    #     e.read(io)
-    #   end
+    #     # read bar.txt into memory io if it exists
+    #     if e = zip["bar.txt"]?
+    #       io = MemoryIO.new
+    #       e.read(io)
+    #     end
     #
     def []?(path : String) : Entry?
       paths[path]?
@@ -1737,9 +1740,9 @@ module Zip
     #
     # Example:
     #
-    #   # read third entry from archive into memory io
-    #   io = MemoryIO.new
-    #   zip[2].read(io)
+    #     # read third entry from archive into memory io
+    #     io = MemoryIO.new
+    #     zip[2].read(io)
     #
     def [](id : Int) : Entry
       @entries[id]
@@ -1750,11 +1753,11 @@ module Zip
     #
     # Example:
     #
-    #   # read third entry from archive into memory io
-    #   if e = zip[2]
-    #     io = MemoryIO.new
-    #     e.read(io)
-    #   end
+    #     # read third entry from archive into memory io
+    #     if e = zip[2]?
+    #       io = MemoryIO.new
+    #       e.read(io)
+    #     end
     #
     def []?(id : Int) : Entry?
       @entries[id]?
@@ -1858,13 +1861,13 @@ module Zip
   #
   # Example:
   #
-  #   # create memory io for contents of "bar.txt"
-  #   io = MemoryIO.new
+  #     # create memory io for contents of "bar.txt"
+  #     io = MemoryIO.new
   #
-  #   # read "bar.txt" from "./foo.zip"
-  #   Zip.read(File.open("./foo.zip", "rb")) do |zip|
-  #     zip["bar.txt"].read(io)
-  #   end
+  #     # read "bar.txt" from "foo.zip"
+  #     Zip.read(File.open("foo.zip", "rb")) do |zip|
+  #       zip["bar.txt"].read(io)
+  #     end
   #
   def self.read(
     io          : IO,
@@ -1879,14 +1882,14 @@ module Zip
   #
   # Example:
   #
-  #   # create memory io for contents of "bar.txt"
-  #   io = MemoryIO.new
+  #     # create memory io for contents of "bar.txt"
+  #     io = MemoryIO.new
   #
-  #   # extract "bar.txt" from zip archive in Slice some_slice and
-  #   # save it to MemoryIO
-  #   Zip.read(some_slice) do |zip|
-  #     zip["bar.txt"].read(io)
-  #   end
+  #     # extract "bar.txt" from zip archive in Slice some_slice and
+  #     # save it to MemoryIO
+  #     Zip.read(some_slice) do |zip|
+  #       zip["bar.txt"].read(io)
+  #     end
   #
   def self.read(
     slice : Bytes,
@@ -1901,13 +1904,13 @@ module Zip
   #
   # Example:
   #
-  #   # create memory io for contents of "bar.txt"
-  #   io = MemoryIO.new
+  #     # create memory io for contents of "bar.txt"
+  #     io = MemoryIO.new
   #
-  #   # extract "bar.txt" from "./foo.zip" and save it to MemoryIO
-  #   Zip.read("./foo.zip") do |zip|
-  #     zip["bar.txt"].read(io)
-  #   end
+  #     # extract "bar.txt" from "foo.zip" and save it to MemoryIO
+  #     Zip.read("foo.zip") do |zip|
+  #       zip["bar.txt"].read(io)
+  #     end
   #
   def self.read(
     path : String,
