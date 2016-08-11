@@ -303,42 +303,6 @@ module Zip
   end
 
   #
-  # Helper methods for converting to and from `Time` objects.
-  #
-  module TimeHelper
-    #
-    # Convert given `Time` to a DOS-style datetime, write the result to
-    # the given IO, and return the number of bytes written.
-    #
-    private def write_time(io : IO, time : Time) : UInt32
-      year = Math.max(1980, time.year) - 1980
-
-      # convert to dos timestamp
-      ((
-        (year << 25) | (time.month << 21) | (time.day << 16) |
-        (time.hour << 11) | (time.minute << 5) | (time.second >> 1)
-      ) & UInt32::MAX).to_u32.to_io(io, LE)
-
-      # return number of bytes written
-      4_u32
-    end
-
-    #
-    # Convert given DOS datetime to a `Time` object.
-    #
-    private def from_dos_time(v : UInt32) : Time
-      Time.new(
-        year:   (v >> 25) + 1980,
-        month:  (v >> 21) & 0b0000_1111,
-        day:    (v >> 16) & 0b0001_1111,
-        hour:   (v >> 11) & 0b0001_1111,
-        minute: (v >> 5)  & 0b0011_1111,
-        second: (v << 1)  & 0b0011_1110,
-      )
-    end
-  end
-
-  #
   # Version identifier used to identify the version needed to extract a
   # given file and to indicate the format of the external file
   # attributes.
@@ -415,6 +379,42 @@ module Zip
         ((@compat & 0xff) << 8) +
         ((@major * 10) + (@minor % 10)) & 0xff
       ).to_u16.to_io(io, LE)
+    end
+  end
+
+  #
+  # Helper methods for converting to and from `Time` objects.
+  #
+  module TimeHelper
+    #
+    # Convert given `Time` to a DOS-style datetime, write the result to
+    # the given IO, and return the number of bytes written.
+    #
+    private def write_time(io : IO, time : Time) : UInt32
+      year = Math.max(1980, time.year) - 1980
+
+      # convert to dos timestamp
+      ((
+        (year << 25) | (time.month << 21) | (time.day << 16) |
+        (time.hour << 11) | (time.minute << 5) | (time.second >> 1)
+      ) & UInt32::MAX).to_u32.to_io(io, LE)
+
+      # return number of bytes written
+      4_u32
+    end
+
+    #
+    # Convert given DOS datetime to a `Time` object.
+    #
+    private def from_dos_time(v : UInt32) : Time
+      Time.new(
+        year:   (v >> 25) + 1980,
+        month:  (v >> 21) & 0b0000_1111,
+        day:    (v >> 16) & 0b0001_1111,
+        hour:   (v >> 11) & 0b0001_1111,
+        minute: (v >> 5)  & 0b0011_1111,
+        second: (v << 1)  & 0b0011_1110,
+      )
     end
   end
 
