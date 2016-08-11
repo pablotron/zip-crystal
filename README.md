@@ -5,7 +5,6 @@ Read and write zip archives natively from
 
 ## Installation
 
-
 Add this to your application's `shard.yml`:
 
 ```yaml
@@ -14,9 +13,7 @@ dependencies:
     github: pablotron/zip-crystal
 ```
 
-
 ## Usage
-
 
 ```crystal
 require "zip-crystal/zip"
@@ -45,10 +42,6 @@ end
 
 See the [API documentation](https://pablotron.github.com/zip-crystal/)
 for additional information.
-
-## Development
-
-TODO: Write development instructions here
 
 ## Contributing
 
