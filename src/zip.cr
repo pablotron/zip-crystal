@@ -16,8 +16,8 @@ require "zlib"
 # [-] zip64
 #   [x] add zip64 parameter
 #   [x] add zip64 extras when writing header and central
-#   [ ] add zip64 archive footer
-#   [ ] update sizes to be u64
+#   [x] add zip64 archive footer
+#   [x] update sizes to be u64
 #   [ ] choose zip64 default for arbitrary IOs (right now it is false)
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
 # [ ] unix uids
@@ -68,6 +68,8 @@ module Zip
     cdr_footer:   0x06054b50_u32,
     file_header:  0x04034b50_u32,
     file_footer:  0x08074b50_u32,
+    z64_footer:   0x06064b50_u32,
+    z64_locator:  0x07064b50_u32,
   }
 
   # :nodoc:
@@ -323,6 +325,11 @@ module Zip
     NEEDED = new(2, 0)
 
     #
+    # Version needed to extract Zip64 entries.
+    #
+    ZIP64 = new(4, 6)
+
+    #
     # Default version made by, if unspecified.
     #
     DEFAULT = new(0, 0)
@@ -427,7 +434,7 @@ module Zip
       crc = 0_u32
 
       buf = Bytes.new(BUFFER_SIZE)
-      src_len = 0_u32
+      src_len = 0_u64
 
       while ((len = src_io.read(buf)) > 0)
         # build output slice
@@ -479,6 +486,8 @@ module Zip
     #
     private def compress_deflate(src_io, dst_io)
       crc = 0_u32
+      src_len = 0_u64
+      dst_len = 0_u64
 
       # create read and compress buffers
       src_buf = Bytes.new(BUFFER_SIZE)
@@ -510,6 +519,9 @@ module Zip
 
       # loop and compress input data
       while ((len = src_io.read(src_buf)) > 0)
+        # add to output counter
+        src_len += len
+
         # build temp slice (if necessary)
         tmp_buf = (len < src_buf.size) ? src_buf[0, len] : src_buf
         tmp_crc = Zlib.crc32(tmp_buf)
@@ -526,7 +538,7 @@ module Zip
         z.avail_in = tmp_buf.size.to_u32
 
         # write compressed data to dst io
-        write_compressed(dst_io, dst_buf, pointerof(z), false)
+        dst_len += write_compressed(dst_io, dst_buf, pointerof(z), false)
       end
 
       # set zlib input buffer to null
@@ -534,13 +546,13 @@ module Zip
       z.avail_in = 0_u32
 
       # flush remaining data
-      write_compressed(dst_io, dst_buf, pointerof(z), true)
+      dst_len += write_compressed(dst_io, dst_buf, pointerof(z), true)
 
       # free stream
       LibZ.deflateEnd(pointerof(z))
 
       # return results
-      { crc.to_u32, z.total_in.to_u32, z.total_out.to_u32 }
+      { crc.to_u32, src_len, dst_len }
     end
 
     #
@@ -551,8 +563,9 @@ module Zip
       buf   : Bytes,
       zp    : Pointer(LibZ::ZStream),
       flush : Bool,
-    )
+    ) : UInt32
       zf = flush ? LibZ::Flush::FINISH : LibZ::Flush::NO_FLUSH
+      r = 0_u32
 
       loop do
         # set zlib output buffer
@@ -565,11 +578,15 @@ module Zip
         if ((len = buf.size - zp.value.avail_out) > 0)
           # write compressed buffer to dst io
           io.write((len < buf.size) ? buf[0, len] : buf)
+          r += len
         end
 
         # exit loop if there is no remaining space
         break if zp.value.avail_out != 0
       end
+
+      # return number of bytes written
+      r
     end
 
     #
@@ -729,7 +746,7 @@ module Zip
       # `Writer#add_file()` or `Writer#add_dir() instead.
       #
       def initialize(
-        @pos      : UInt32,
+        @pos      : UInt64,
         @path     : String,
         @method   : CompressionMethod = CompressionMethod::DEFLATE,
         @time     : Time = Time.now,
@@ -739,10 +756,11 @@ module Zip
         @zip64    : Bool = false,
       )
         @crc = 0_u32
+        @src_len = 0_u64
+        @dst_len = 0_u64
 
-        # FIXME: these should be u64, at least for zip64
-        @src_len = 0_u32
-        @dst_len = 0_u32
+        # auto-enable zip64 if position is large enough
+        @zip64 ||= (@pos >= UInt32::MAX)
 
         @extras = Extra.pack(if @zip64
           # build list of extras
@@ -752,7 +770,7 @@ module Zip
           es << Extra::Zip64.new(
             file_size:        0_u64,
             compressed_size:  0_u64,
-            # TODO: add position
+            pos:              (@pos >= UInt32::MAX) ? @pos : nil,
           )
 
           # return extras
@@ -770,7 +788,7 @@ module Zip
       # You should not need to call this method directly; it is called
       # automatically by `Writer#add` and `Writer#add_file`.
       #
-      def to_s(dst_io) : UInt32
+      def to_s(dst_io) : UInt64
         # write header
         r = write_header(dst_io, @flags, @path, @method, @time, @zip64)
 
@@ -811,7 +829,7 @@ module Zip
         method  : CompressionMethod,
         time    : Time,
         zip64   : Bool,
-      ) : UInt32
+      ) : UInt64
         # get path length, in bytes
         path_len = path.bytesize
 
@@ -836,7 +854,7 @@ module Zip
 
         # write compressed size (u32) and uncompressed size (u32)
         # (will be populated in the footer)
-        size = @zip64 ? UInt32::MAX : 0_u32
+        size = zip64? ? UInt32::MAX : 0_u32
         size.to_u32.to_io(io, LE)
         size.to_u32.to_io(io, LE)
 
@@ -854,7 +872,7 @@ module Zip
         @extras.to_s(io) if extras_len > 0
 
         # return number of bytes written
-        30_u32 + path_len + extras_len
+        30_u64 + path_len + extras_len
       end
 
       abstract def write_body(dst_io : IO)
@@ -862,8 +880,8 @@ module Zip
       abstract def write_footer(
         io      : IO,
         crc     : UInt32,
-        src_len : UInt32,
-        dst_len : UInt32,
+        src_len : UInt64,
+        dst_len : UInt64,
         zip64   : Bool,
       ) : UInt32
 
@@ -980,7 +998,7 @@ module Zip
       # automatically by `Writer#add` and `Writer#add_file`.
       #
       def initialize(
-        pos     : UInt32,
+        pos     : UInt64,
         path    : String,
         @io     : IO,
         method  : CompressionMethod = CompressionMethod::DEFLATE,
@@ -1034,8 +1052,8 @@ module Zip
       private def write_footer(
         io      : IO,
         crc     : UInt32,
-        src_len : UInt32,
-        dst_len : UInt32,
+        src_len : UInt64,
+        dst_len : UInt64,
         zip64   : Bool,
       ) : UInt32
         # write magic (u32)
@@ -1081,7 +1099,7 @@ module Zip
       # `Writer#add_dir` instead.
       #
       def initialize(
-        pos     : UInt32,
+        pos     : UInt64,
         path    : String,
         time    : Time = Time.now,
         comment : String = "",
@@ -1099,14 +1117,14 @@ module Zip
       end
 
       private def write_body(dst_io : IO)
-        { 0_u32, 0_u32, 0_u32 }
+        { 0_u32, 0_u64, 0_u64 }
       end
 
       private def write_footer(
         io      : IO,
         crc     : UInt32,
-        src_len : UInt32,
-        dst_len : UInt32,
+        src_len : UInt64,
+        dst_len : UInt64,
         zip64   : Bool,
       ) : UInt32
         0_u32
@@ -1134,7 +1152,7 @@ module Zip
     #
     def initialize(
       @io       : IO,
-      @pos      : UInt32 = 0,
+      @pos      : UInt64 = 0_u64,
       @comment  : String = "",
       @version  : Version = Version::DEFAULT,
     )
@@ -1160,7 +1178,7 @@ module Zip
     #       puts "bytes written so far: #{zip.bytes_written}"
     #     end
     #
-    def bytes_written : UInt32
+    def bytes_written : UInt64
       # return total number of bytes written
       @src_pos - @pos
     end
@@ -1170,9 +1188,6 @@ module Zip
     #
     def close
       assert_open
-
-      # TODO: add zip64 support
-      # if @entries.any? { |e| e.zip64? }
 
       # cache cdr position
       cdr_pos = @pos
@@ -1191,7 +1206,7 @@ module Zip
       bytes_written
     end
 
-    private def add_entry(entry : Writers::WriterEntry) : UInt32
+    private def add_entry(entry : Writers::WriterEntry) : UInt64
       # make sure writer is still open
       assert_open
 
@@ -1232,7 +1247,7 @@ module Zip
 
       # FIXME: should this be true for arbitrary IO?
       zip64   : Bool = false,
-    ) : UInt32
+    ) : UInt64
       add_entry(Writers::FileEntry.new(
         pos:      @pos,
         path:     path,
@@ -1262,7 +1277,7 @@ module Zip
       method  : CompressionMethod = CompressionMethod::DEFLATE,
       time    : Time = Time.now,
       comment : String = "",
-    ) : UInt32
+    ) : UInt64
       zip64 = (data.size >= UInt32::MAX)
       add(path, MemoryIO.new(data), method, time, comment, zip64)
     end
@@ -1283,7 +1298,7 @@ module Zip
       path    : String,
       time    : Time = Time.now,
       comment : String = "",
-    ) : UInt32
+    ) : UInt64
       add_entry(Writers::DirEntry.new(
         pos:      @pos,
         path:     path,
@@ -1310,7 +1325,7 @@ module Zip
       method    : CompressionMethod = CompressionMethod::DEFLATE,
       time      : Time = Time.now,
       comment   : String = "",
-    ) : UInt32
+    ) : UInt64
       File.open(file_path, "rb") do |io|
         zip64 = (io.stat.size >= UInt32::MAX)
         add(path, io, method, time, comment, zip64)
@@ -1337,9 +1352,12 @@ module Zip
     # :nodoc:
 
     private def write_footer(
-      cdr_pos : UInt32,
-      cdr_len : UInt32,
-    ) : UInt32
+      cdr_pos : UInt64,
+      cdr_len : UInt64,
+    ) : UInt64
+      # write zip64 footer (if necessary)
+      r = write_zip64_footer(cdr_pos, cdr_len)
+
       # write magic (u32)
       MAGIC[:cdr_footer].to_io(@io, LE)
 
@@ -1347,14 +1365,21 @@ module Zip
       0_u32.to_u16.to_io(@io, LE)
       0_u32.to_u16.to_io(@io, LE)
 
-      # write num entries (u16) and total entries (u16)
+      # write number of entries (u16)
       num_entries = @entries.size
-      num_entries.to_u16.to_io(@io, LE)
-      num_entries.to_u16.to_io(@io, LE)
+      if num_entries < UInt16::MAX
+        # write num entries (u16) and total entries (u16)
+        num_entries.to_u16.to_io(@io, LE)
+        num_entries.to_u16.to_io(@io, LE)
+      else
+        # write max (defer to zip64 footer)
+        UInt16::MAX.to_io(@io, LE)
+        UInt16::MAX.to_io(@io, LE)
+      end
 
       # write cdr offset (u32) and cdr length (u32)
-      cdr_len.to_io(@io, LE)
-      cdr_pos.to_io(@io, LE)
+      ((cdr_len < UInt32::MAX) ? cdr_len : UInt32::MAX).to_u32.to_io(@io, LE)
+      ((cdr_pos < UInt32::MAX) ? cdr_pos : UInt32::MAX).to_u32.to_io(@io, LE)
 
       # get comment length (u16)
       comment_len = @comment.bytesize
@@ -1364,7 +1389,116 @@ module Zip
       @comment.to_s(@io)
 
       # return number of bytes written
-      22_u32 + comment_len
+      r + 22_u64 + comment_len
+    end
+
+    # :nodoc:
+    # 4.3.14  Zip64 end of central directory record
+    #
+    #      zip64 end of central dir
+    #      signature                       4 bytes  (0x06064b50)
+    #      size of zip64 end of central
+    #      directory record                8 bytes
+    #      version made by                 2 bytes
+    #      version needed to extract       2 bytes
+    #      number of this disk             4 bytes
+    #      number of the disk with the
+    #      start of the central directory  4 bytes
+    #      total number of entries in the
+    #      central directory on this disk  8 bytes
+    #      total number of entries in the
+    #      central directory               8 bytes
+    #      size of the central directory   8 bytes
+    #      offset of start of central
+    #      directory with respect to
+    #      the starting disk number        8 bytes
+    #      zip64 extensible data sector    (variable size)
+    #
+    #    4.3.14.1 The value stored into the "size of zip64 end of central
+    #    directory record" should be the size of the remaining
+    #    record and should not include the leading 12 bytes.
+    #
+    #    Size = SizeOfFixedFields + SizeOfVariableData - 12.
+    #
+    #
+    # 4.3.15 Zip64 end of central directory locator
+    #
+    #    zip64 end of central dir locator
+    #    signature                       4 bytes  (0x07064b50)
+    #    number of the disk with the
+    #    start of the zip64 end of
+    #    central directory               4 bytes
+    #    relative offset of the zip64
+    #    end of central directory record 8 bytes
+    #    total number of disks           4 bytes
+    # :nodoc:
+
+    private def write_zip64_footer(
+      cdr_pos : UInt64,
+      cdr_len : UInt64,
+    ) : UInt64
+      # count entries
+      num_entries = @entries.size
+
+      if cdr_pos >= UInt32::MAX ||
+         cdr_len >= UInt32::MAX ||
+         num_entries >= UInt16::MAX
+        z64_data_len = 0_u64
+
+        ################
+        # zip64 footer #
+        ################
+
+        # write magic (u32)
+        MAGIC[:z64_footer].to_io(@io, LE)
+
+        # write size (u64)
+        (44_u64 + z64_data_len).to_io(@io, LE)
+
+        # write version made by (u16)
+        @version.to_io(@io)
+
+        # write version needed (u16)
+        Version::ZIP64.to_io(@io)
+
+        # disk number (u32), disk with cdr (u32)
+        0_u32.to_io(@io, LE)
+        0_u32.to_io(@io, LE)
+
+        # write number of entries (u64 x 2)
+        num_entries.to_u64.to_io(@io, LE)
+        num_entries.to_u64.to_io(@io, LE)
+
+        # write cdr_len (u64)
+        cdr_len.to_u64.to_io(@io, LE)
+
+        # write cdr_pos (u64)
+        cdr_pos.to_u64.to_io(@io, LE)
+
+        # TODO: add z64_data
+
+        #################
+        # zip64 locator #
+        #################
+
+        # write magic (u32)
+        MAGIC[:z64_locator].to_io(@io, LE)
+
+        # write start disk (u32)
+        0_u32.to_io(@io, LE)
+
+        # write z64_cdr_pos (u64)
+        (cdr_pos + cdr_len).to_u64.to_io(@io, LE)
+
+        # write total number of disks (u32)
+        1_u32.to_io(@io, LE)
+
+        # return number of bytes written
+        64_u64 + z64_data_len
+      else
+        # z64 header not needed
+        0_u64
+      end
     end
   end
 
@@ -1384,12 +1518,12 @@ module Zip
   #
   def self.write(
     io      : IO,
-    pos     : UInt32 = 0_u32,
+    pos     : UInt64 = 0_u64,
     comment : String = "",
     version : Version = Version::DEFAULT,
     &cb     : Writer -> \
-  ) : UInt32
-    r = 0_u32
+  ) : UInt64
+    r = 0_u64
 
     begin
       w = Writer.new(io, pos, comment, version)
@@ -1419,11 +1553,11 @@ module Zip
   #
   def self.write(
     path    : String,
-    pos     : UInt32 = 0_u32,
+    pos     : UInt64 = 0_u64,
     comment : String = "",
     version : Version = Version::DEFAULT,
     &cb     : Writer -> \
-  ) : UInt32
+  ) : UInt64
     File.open(path, "wb") do |io|
       write(io, pos, comment, version, &cb)
     end
