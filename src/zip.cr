@@ -18,8 +18,9 @@ require "zlib"
 #   [x] add zip64 extras when writing header and central
 #   [x] add zip64 archive footer
 #   [x] update sizes to be u64
-#   [ ] reader support
+#   [x] reader support
 #   [ ] choose zip64 default for arbitrary IOs (right now it is false)
+#   [ ] testing
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
 # [ ] unix uids
 # [ ] encryption
@@ -75,6 +76,12 @@ module Zip
 
   # :nodoc:
   LE = IO::ByteFormat::LittleEndian
+
+  # :nodoc:
+  # Static, zero-length `Bytes` used when empty buffer reference is
+  # needed.
+  # :nodoc:
+  EMPTY_SLICE = Bytes.new(0)
 
   #
   # Size of internal buffers, in bytes.
@@ -360,9 +367,9 @@ module Zip
     # by internal classes.
     #
     def initialize(v : UInt16)
-      @compat = v >> 8
-      @major = (v & 0xff) / 10
-      @minor = (v & 0xff) % 10
+      @compat = v.to_i >> 8
+      @major = (v.to_i & 0xff) / 10
+      @minor = (v.to_i & 0xff) % 10
     end
 
     #
@@ -769,7 +776,7 @@ module Zip
 
           # add zip64 to list of extras
           es << Extra::Zip64.new(
-            file_size:        0_u64,
+            size:             0_u64,
             compressed_size:  0_u64,
             pos:              (@pos >= UInt32::MAX) ? @pos : nil,
           )
@@ -1629,17 +1636,17 @@ module Zip
       #
       # Return number of bytes needed for this Extra.
       #
-      def size : UInt16
+      def bytes_needed : UInt16
         4.to_u16 + @data.size.to_u16
       end
 
       def to_s(io) : UInt16
-        @code.to_io(io, LE)
+        @code.to_u64.to_io(io, LE)
         @data.size.to_u16.to_io(io, LE)
         @data.to_s(io)
 
         # return number of bytes written
-        size
+        bytes_needed
       end
     end
 
@@ -1653,7 +1660,7 @@ module Zip
       #
       # File size (64-bit unsigned integer).
       #
-      getter :file_size
+      getter :size
 
       #
       # Compressed file size (64-bit unsigned integer).
@@ -1683,20 +1690,20 @@ module Zip
       # created as-needed by `Writer#add()`.
       #
       def initialize(
-        @file_size        : UInt64 = 0_u64,
+        @size             : UInt64 = 0_u64,
         @compressed_size  : UInt64 = 0_u64,
         @pos              : UInt64? = nil,
         @disk_start       : UInt32? = nil,
       )
         len = 16_u32
-        len += 8 if @pos && @disk_start
+        len += 8 if @pos
         len += 4 if @disk_start
 
         # create backing buffer and mem io
         buf = Bytes.new(len)
         io = MemoryIO.new(buf)
 
-        @file_size.to_u64.to_io(io, LE)
+        @size.to_u64.to_io(io, LE)
         @compressed_size.to_u64.to_io(io, LE)
         @pos.not_nil!.to_u64.to_io(io, LE) if @pos
         @disk_start.not_nil!.to_u32.to_io(io, LE) if @disk_start
@@ -1719,7 +1726,7 @@ module Zip
         # create memory io over buffer
         io = MemoryIO.new(data, false)
 
-        @file_size = UInt64.from_io(io, LE).as(UInt64)
+        @size = UInt64.from_io(io, LE).as(UInt64)
         @compressed_size = UInt64.from_io(io, LE).as(UInt64)
 
         @pos, @disk_start = case data.size - 16
@@ -1758,18 +1765,12 @@ module Zip
     end
 
     #
-    # Static, zero-length `Bytes` when `Extra.pack()` is called with
-    # *nil* or an empty array.
-    #
-    EMPTY_EXTRAS = Bytes.new(0)
-
-    #
     # Encode array of `Extra::Base` and return buffer.
     #
     def self.pack(extras : Array(Extra::Base)?) : Bytes
       if extras && extras.size > 0
         # create backing buffer for extras
-        buf = Bytes.new(extras.reduce(0_u32) { |r, e| r + e.size })
+        buf = Bytes.new(extras.reduce(0_u32) { |r, e| r + e.bytes_needed })
 
         # create io and write each extra data to io
         io = MemoryIO.new(buf)
@@ -1779,7 +1780,8 @@ module Zip
         # return buffer
         buf
       else
-        EMPTY_EXTRAS
+        # return empty slice
+        EMPTY_SLICE
       end
     end
   end
@@ -1882,7 +1884,7 @@ module Zip
     getter :crc
 
     #
-    # Get compressed size for this `Entry` as a `UInt32`.
+    # Get compressed size for this `Entry`.
     #
     #     Zip.read("foo.zip") do |zip|
     #       # print compressed size for each entry
@@ -1894,7 +1896,7 @@ module Zip
     getter :compressed_size
 
     #
-    # Get uncompressed size for this `Entry` as a `UInt32`.
+    # Get uncompressed size for this `Entry`.
     #
     #     Zip.read("foo.zip") do |zip|
     #       # print uncompressed size for each entry
@@ -1966,7 +1968,7 @@ module Zip
     getter :external
 
     #
-    # Get position for this `Entry` as a `UInt32`.
+    # Get position for this `Entry`.
     #
     #     Zip.read("foo.zip") do |zip|
     #       # print position for each entry
@@ -2040,9 +2042,10 @@ module Zip
       @time = from_dos_time(UInt32.from_io(head_mem_io, LE)).as(Time)
 
       # read crc and lengths
+      # (store lengths as u64 for zip64 compat)
       @crc = UInt32.from_io(head_mem_io, LE).as(UInt32)
-      @compressed_size = UInt32.from_io(head_mem_io, LE).as(UInt32)
-      @size = UInt32.from_io(head_mem_io, LE).as(UInt32)
+      @compressed_size = UInt32.from_io(head_mem_io, LE).to_u64.as(UInt64)
+      @size = UInt32.from_io(head_mem_io, LE).to_u64.as(UInt64)
 
       # read lengths
       @path_len = UInt16.from_io(head_mem_io, LE).not_nil!.as(UInt16)
@@ -2050,12 +2053,16 @@ module Zip
       @comment_len = UInt16.from_io(head_mem_io, LE).as(UInt16)
 
       # read starting disk
-      @disk_start = UInt16.from_io(head_mem_io, LE).as(UInt16)
+      # (store as u32 for zip64 compat)
+      @disk_start = UInt16.from_io(head_mem_io, LE).to_u32.as(UInt32)
 
       # read attributes and position
       @internal = UInt16.from_io(head_mem_io, LE).as(UInt16)
       @external = UInt32.from_io(head_mem_io, LE).as(UInt32)
-      @pos = UInt32.from_io(head_mem_io, LE).as(UInt32)
+
+      # read position
+      # (store as u64 for zip64 compat)
+      @pos = UInt32.from_io(head_mem_io, LE).to_u64.as(UInt64)
 
       # close memory io
       head_mem_io.close
@@ -2075,6 +2082,14 @@ module Zip
       @path = read_string(data_mem_io, @path_len, "name") as String
       @extras = read_extras(data_mem_io, @extras_len) as Array(Extra::Base)
       @comment = read_string(data_mem_io, @comment_len, "comment") as String
+
+      if e = @extras.find { |e| e.code == Extra::Zip64::CODE }
+        e = e.as(Extra::Zip64)
+        @size = e.size
+        @compressed_size = e.compressed_size
+        @pos = e.pos.not_nil! if e.pos
+        @disk_start = e.disk_start.not_nil! if e.disk_start
+      end
 
       # close data memory io
       data_mem_io.close
@@ -2127,7 +2142,7 @@ module Zip
     #       end
     #     end
     #
-    def write(dst_io : IO) : UInt32
+    def write(dst_io : IO) : UInt64
       # create buffer for local header
       buf = Bytes.new(30)
 
@@ -2190,7 +2205,7 @@ module Zip
     #       end
     #     end
     #
-    def write(path : String) : UInt32
+    def write(path : String) : UInt64
       File.open(path, "wb") do |io|
         write(io)
       end
@@ -2365,37 +2380,25 @@ module Zip
       mem_io = MemoryIO.new(mem, false)
 
       # read disk numbers
-      @disk_num = mem_io.read_bytes(UInt16, LE).as(UInt16)
-      @cdr_disk = mem_io.read_bytes(UInt16, LE).as(UInt16)
-
-      # check disk numbers
-      if @disk_num != @cdr_disk
-        raise Error.new("multi-disk archives not supported")
-      end
+      # (convert to u32 so type matches zip64 values)
+      @disk_num = UInt16.from_io(mem_io, LE).to_u32.as(UInt32)
+      @cdr_disk = UInt16.from_io(mem_io, LE).to_u32.as(UInt32)
 
       # read entry counts
-      @num_disk_entries = mem_io.read_bytes(UInt16, LE).as(UInt16)
-      @num_entries = mem_io.read_bytes(UInt16, LE).not_nil!.as(UInt16)
-
-      # check entry counts
-      if @num_disk_entries != @num_entries
-        raise Error.new("multi-disk archives not supported")
-      end
+      # (convert to u64 so type matches zip64 values)
+      @num_disk_entries = UInt16.from_io(mem_io, LE).to_u64.as(UInt64)
+      @num_entries = UInt16.from_io(mem_io, LE).to_u64.as(UInt64)
 
       # read cdr position and length
-      @cdr_len = mem_io.read_bytes(UInt32, LE).not_nil!.as(UInt32)
-      @cdr_pos = mem_io.read_bytes(UInt32, LE).not_nil!.as(UInt32)
-
-      # check cdr position
-      if @cdr_pos.not_nil! + @cdr_len.not_nil! >= end_pos
-        raise Error.new("invalid CDR offset: #{@cdr_pos}")
-      end
+      # (convert to u64 so type matches zip64 values)
+      @cdr_len = UInt32.from_io(mem_io, LE).to_u64.as(UInt64)
+      @cdr_pos = UInt32.from_io(mem_io, LE).to_u64.as(UInt64)
 
       # read comment length and comment body
-      @comment_len = mem_io.read_bytes(UInt16, LE).not_nil!.as(UInt16)
-      @comment = if @comment_len.not_nil! > 0
+      @comment_len = UInt16.from_io(mem_io, LE).as(UInt16)
+      @comment = if @comment_len > 0
         # allocate space for comment
-        slice = Bytes.new(@comment_len.not_nil!)
+        slice = Bytes.new(@comment_len)
 
         # seek to comment position
         @io.pos = footer_pos + 22
@@ -2413,6 +2416,92 @@ module Zip
 
       # close memory io
       mem_io.close
+
+      # check and see if any of the footer entries are 0xFFFF or
+      # 0xFFFFFFFF (that is, they indicate a zip64 header)
+      if @disk_num == UInt16::MAX || @cdr_disk == UInt16::MAX ||
+         @num_disk_entries == UInt16::MAX || @num_entries == UInt16::MAX ||
+         @cdr_len == UInt32::MAX || @cdr_pos == UInt32::MAX
+        # create buffer and mem_io for zip64 header
+        buf = Bytes.new(56)
+        mem_io = MemoryIO.new(buf, false)
+
+        # seek to zip64 footer position and read it in
+        z64_pos = find_zip64_footer(@io, footer_pos)
+        @io.read(buf)
+
+        # read and check magic
+        magic = UInt32.from_io(mem_io, LE)
+        if magic != MAGIC[:z64_footer]
+          raise Error.new("invalid ZIP64 footer magic")
+        end
+
+        # read zip64 footer length and calculate data len
+        # (footer length value excludes magic and length)
+        z64_len = UInt64.from_io(mem_io, LE)
+        @zip64_data_len = z64_len - 44
+
+        # read versions
+        @version = Version.new(UInt16.from_io(mem_io, LE))
+        @version_needed = Version.new(UInt16.from_io(mem_io, LE))
+
+        # read disk numbers
+        @disk_num = UInt32.from_io(mem_io, LE).to_u32
+        @cdr_disk = UInt32.from_io(mem_io, LE).to_u32
+
+        # read entry counts
+        @num_disk_entries = UInt64.from_io(mem_io, LE)
+        @num_entries = UInt64.from_io(mem_io, LE)
+
+        # read cdr position and length
+        @cdr_len = UInt64.from_io(mem_io, LE)
+        @cdr_pos = UInt64.from_io(mem_io, LE)
+
+        # close memory io
+        mem_io.close
+
+        # read zip64 data
+        @zip64_data = if @zip64_data_len > 0
+          # create buffer
+          z64_data_buf = Bytes.new(@zip64_data_len)
+
+          # skip to data position and read it in
+          @io.pos = z64_pos + 56
+          @io.read(z64_data_buf)
+
+          # return buffer
+          z64_data_buf
+        else
+          EMPTY_SLICE
+        end
+      else
+        # set version and version_needed to default
+        @version = Version::DEFAULT
+        @version_needed = Version::DEFAULT
+
+        # no zip64 data for non-zip64 archives
+        @zip64_data_len = 0_u64
+        @zip64_data = EMPTY_SLICE
+      end
+
+      ########################
+      # verify header values #
+      ########################
+
+      # check disk numbers
+      if @disk_num != @cdr_disk
+        raise Error.new("multi-disk archives not supported")
+      end
+
+      # check entry counts
+      if @num_disk_entries != @num_entries
+        raise Error.new("multi-disk archives not supported")
+      end
+
+      # check cdr position
+      if @cdr_pos + @cdr_len >= end_pos
+        raise Error.new("invalid CDR offset: #{@cdr_pos}")
+      end
 
       # read entries
       @entries = [] of Entry
@@ -2525,9 +2614,9 @@ module Zip
     private def read_entries(
       entries     : Array(Entry),
       io          : Source,
-      cdr_pos     : UInt32,
-      cdr_len     : UInt32,
-      num_entries : UInt16,
+      cdr_pos     : UInt64,
+      cdr_len     : UInt64,
+      num_entries : UInt64,
     )
       # get end position
       end_cdr_pos = cdr_pos + cdr_len
@@ -2601,8 +2690,42 @@ module Zip
       # throw error
       raise Error.new("couldn't find end of central directory")
     end
-  end
 
+    private def find_zip64_footer(io : Source, footer_pos : Int) : UInt64
+      buf = Bytes.new(20)
+      mem_io = MemoryIO.new(buf, false)
+
+      curr_pos = footer_pos - 20
+      while curr_pos >= 0
+        # sek to current position and read it into buffer
+        io.pos = curr_pos
+        io.read(buf)
+
+        # read what might be the zip64 locator magic
+        maybe_magic = UInt32.from_io(mem_io, LE)
+
+        if maybe_magic == MAGIC[:z64_locator]
+          z64_start_disk = UInt32.from_io(mem_io, LE)
+          z64_pos = UInt64.from_io(mem_io, LE)
+          z64_num_disks = UInt32.from_io(mem_io, LE)
+
+          # check disk counts
+          if z64_start_disk > 1 || z64_num_disks > 1
+            raise Error.new("multi-disk ZIP64 archives not supported")
+          end
+
+          # return position of zip64 footer
+          return z64_pos
+        end
+
+        # step back one byte
+        curr_pos -= 1
+      end
+
+      # throw error
+      raise Error.new("couldn't find ZIP64 locator")
+    end
+  end
 
   #
   # Read Zip::Archive from seekable IO instance and pass it to the given
