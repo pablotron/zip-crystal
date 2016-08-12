@@ -399,6 +399,197 @@ module Zip
   end
 
   #
+  # Extra data handlers.
+  #
+  module Extra
+    #
+    # Raw extra data associated with `Entry`.
+    #
+    # You should not need to instantiate this class directly; use
+    # `Zip::Entry#extras` or `Zip::Entry#local_extras` instead.
+    #
+    # Example:
+    #
+    #     # open "foo.zip"
+    #     Zip.read("foo.zip") do |zip|
+    #       # get extra data associated with "bar.txt"
+    #       extras = zip["bar.txt"].extras
+    #     end
+    #
+    class Base
+      #
+      # Identifier for this extra entry.
+      #
+      property :code
+
+      #
+      # Data for this extra entry.
+      #
+      property :data
+
+      #
+      # Create a new raw extra data entry.
+      #
+      # You should not need to instantiate this class directly; it is
+      # created as-needed by `Writer#add`.
+      #
+      def initialize(@code : UInt16, @data : Bytes)
+      end
+
+      #
+      # Return number of bytes needed for this Extra.
+      #
+      def bytes_needed : UInt16
+        (4 + @data.size).to_u16
+      end
+
+      def to_s(io) : UInt16
+        @code.to_u16.to_io(io, LE)
+        @data.size.to_u16.to_io(io, LE)
+        @data.to_s(io)
+
+        # return number of bytes written
+        bytes_needed
+      end
+    end
+
+    #
+    # ZIP64 extra data associated with `Entry`.
+    #
+    # You should not need to instantiate this class directly; it is
+    # created as-needed by `Writer#add()`.
+    #
+    class Zip64 < Base
+      #
+      # File size (64-bit unsigned integer).
+      #
+      getter :size
+
+      #
+      # Compressed file size (64-bit unsigned integer).
+      #
+      getter :compressed_size
+
+      #
+      # Position in output (optional).
+      #
+      getter :pos
+
+      #
+      # Starting disk (optional).
+      #
+      getter :disk_start
+
+      #
+      # ZIP64 extra code
+      #
+      CODE = 0x0001.to_u16
+
+      #
+      # Create ZIP64 extra data associated with `Entry` from given
+      # attributes.
+      #
+      # You should not need to instantiate this class directly; it is
+      # created as-needed by `Writer#add()`.
+      #
+      def initialize(
+        @size             : UInt64 = 0_u64,
+        @compressed_size  : UInt64 = 0_u64,
+        @pos              : UInt64? = nil,
+        @disk_start       : UInt32? = nil,
+      )
+        len = 16_u32
+        len += 8 if @pos
+        len += 4 if @disk_start
+
+        # create backing buffer and mem io
+        buf = Bytes.new(len)
+        io = MemoryIO.new(buf)
+
+        @size.to_u64.to_io(io, LE)
+        @compressed_size.to_u64.to_io(io, LE)
+        @pos.not_nil!.to_u64.to_io(io, LE) if @pos
+        @disk_start.not_nil!.to_u32.to_io(io, LE) if @disk_start
+
+        # close io
+        io.close
+
+        super(CODE, buf)
+      end
+
+      #
+      # Parse ZIP64 extra data from given buffer.
+      #
+      # You should not need to instantiate this class directly; it is
+      # created as-needed by `Archive`.
+      #
+      def initialize(data : Bytes)
+        super(CODE, data)
+
+        # create memory io over buffer
+        io = MemoryIO.new(data, false)
+
+        @size = UInt64.from_io(io, LE).as(UInt64)
+        @compressed_size = UInt64.from_io(io, LE).as(UInt64)
+
+        @pos, @disk_start = case data.size - 16
+        when 12
+          { UInt64.from_io(io, LE), UInt32.from_io(io, LE) }
+        when 8
+          { UInt64.from_io(io, LE), nil }
+        when 4
+          { nil, UInt32.from_io(io, LE) }
+        when 0
+          { nil, nil }
+        else
+          raise Error.new("invalid Zip64 extra data: #{data.size}")
+        end
+      end
+    end
+
+    #
+    # Parse `Extra` data from given IO *io*.
+    #
+    def self.read(io) : Base
+      # read code and length
+      code = UInt16.from_io(io, LE).as(UInt16)
+      len = UInt16.from_io(io, LE).as(UInt16)
+
+      # read buffer
+      data = Bytes.new(len)
+      io.read(data)
+
+      case code
+      when Zip64::CODE
+        Zip64.new(data)
+      else
+        Base.new(code, data)
+      end
+    end
+
+    #
+    # Encode array of `Extra::Base` and return buffer.
+    #
+    def self.pack(extras : Array(Extra::Base)?) : Bytes
+      if extras && extras.size > 0
+        # create backing buffer for extras
+        buf = Bytes.new(extras.reduce(0) { |r, e| r + e.bytes_needed })
+
+        # create io and write each extra data to io
+        io = MemoryIO.new(buf)
+        extras.each { |e| e.to_s(io) }
+        io.close
+
+        # return buffer
+        buf
+      else
+        # return empty slice
+        EMPTY_SLICE
+      end
+    end
+  end
+
+  #
   # Helper methods for converting to and from `Time` objects.
   #
   module TimeHelper
@@ -1593,197 +1784,6 @@ module Zip
     delegate read, to: @io
     delegate write, to: @io
     forward_missing_to @io
-  end
-
-  #
-  # Extra data handlers.
-  #
-  module Extra
-    #
-    # Raw extra data associated with `Entry`.
-    #
-    # You should not need to instantiate this class directly; use
-    # `Zip::Entry#extras` or `Zip::Entry#local_extras` instead.
-    #
-    # Example:
-    #
-    #     # open "foo.zip"
-    #     Zip.read("foo.zip") do |zip|
-    #       # get extra data associated with "bar.txt"
-    #       extras = zip["bar.txt"].extras
-    #     end
-    #
-    class Base
-      #
-      # Identifier for this extra entry.
-      #
-      property :code
-
-      #
-      # Data for this extra entry.
-      #
-      property :data
-
-      #
-      # Create a new raw extra data entry.
-      #
-      # You should not need to instantiate this class directly; it is
-      # created as-needed by `Writer#add`.
-      #
-      def initialize(@code : UInt16, @data : Bytes)
-      end
-
-      #
-      # Return number of bytes needed for this Extra.
-      #
-      def bytes_needed : UInt16
-        (4 + @data.size).to_u16
-      end
-
-      def to_s(io) : UInt16
-        @code.to_u16.to_io(io, LE)
-        @data.size.to_u16.to_io(io, LE)
-        @data.to_s(io)
-
-        # return number of bytes written
-        bytes_needed
-      end
-    end
-
-    #
-    # ZIP64 extra data associated with `Entry`.
-    #
-    # You should not need to instantiate this class directly; it is
-    # created as-needed by `Writer#add()`.
-    #
-    class Zip64 < Base
-      #
-      # File size (64-bit unsigned integer).
-      #
-      getter :size
-
-      #
-      # Compressed file size (64-bit unsigned integer).
-      #
-      getter :compressed_size
-
-      #
-      # Position in output (optional).
-      #
-      getter :pos
-
-      #
-      # Starting disk (optional).
-      #
-      getter :disk_start
-
-      #
-      # ZIP64 extra code
-      #
-      CODE = 0x0001.to_u16
-
-      #
-      # Create ZIP64 extra data associated with `Entry` from given
-      # attributes.
-      #
-      # You should not need to instantiate this class directly; it is
-      # created as-needed by `Writer#add()`.
-      #
-      def initialize(
-        @size             : UInt64 = 0_u64,
-        @compressed_size  : UInt64 = 0_u64,
-        @pos              : UInt64? = nil,
-        @disk_start       : UInt32? = nil,
-      )
-        len = 16_u32
-        len += 8 if @pos
-        len += 4 if @disk_start
-
-        # create backing buffer and mem io
-        buf = Bytes.new(len)
-        io = MemoryIO.new(buf)
-
-        @size.to_u64.to_io(io, LE)
-        @compressed_size.to_u64.to_io(io, LE)
-        @pos.not_nil!.to_u64.to_io(io, LE) if @pos
-        @disk_start.not_nil!.to_u32.to_io(io, LE) if @disk_start
-
-        # close io
-        io.close
-
-        super(CODE, buf)
-      end
-
-      #
-      # Parse ZIP64 extra data from given buffer.
-      #
-      # You should not need to instantiate this class directly; it is
-      # created as-needed by `Archive`.
-      #
-      def initialize(data : Bytes)
-        super(CODE, data)
-
-        # create memory io over buffer
-        io = MemoryIO.new(data, false)
-
-        @size = UInt64.from_io(io, LE).as(UInt64)
-        @compressed_size = UInt64.from_io(io, LE).as(UInt64)
-
-        @pos, @disk_start = case data.size - 16
-        when 12
-          { UInt64.from_io(io, LE), UInt32.from_io(io, LE) }
-        when 8
-          { UInt64.from_io(io, LE), nil }
-        when 4
-          { nil, UInt32.from_io(io, LE) }
-        when 0
-          { nil, nil }
-        else
-          raise Error.new("invalid Zip64 extra data: #{data.size}")
-        end
-      end
-    end
-
-    #
-    # Parse `Extra` data from given IO *io*.
-    #
-    def self.read(io) : Base
-      # read code and length
-      code = UInt16.from_io(io, LE).as(UInt16)
-      len = UInt16.from_io(io, LE).as(UInt16)
-
-      # read buffer
-      data = Bytes.new(len)
-      io.read(data)
-
-      case code
-      when Zip64::CODE
-        Zip64.new(data)
-      else
-        Base.new(code, data)
-      end
-    end
-
-    #
-    # Encode array of `Extra::Base` and return buffer.
-    #
-    def self.pack(extras : Array(Extra::Base)?) : Bytes
-      if extras && extras.size > 0
-        # create backing buffer for extras
-        buf = Bytes.new(extras.reduce(0) { |r, e| r + e.bytes_needed })
-
-        # create io and write each extra data to io
-        io = MemoryIO.new(buf)
-        extras.each { |e| e.to_s(io) }
-        io.close
-
-        # return buffer
-        buf
-      else
-        # return empty slice
-        EMPTY_SLICE
-      end
-    end
   end
 
   #
