@@ -18,6 +18,7 @@ require "zlib"
 #   [x] add zip64 extras when writing header and central
 #   [x] add zip64 archive footer
 #   [x] update sizes to be u64
+#   [ ] reader support
 #   [ ] choose zip64 default for arbitrary IOs (right now it is false)
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
 # [ ] unix uids
