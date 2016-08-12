@@ -446,7 +446,7 @@ module Zip
       def to_s(io) : UInt16
         @code.to_u16.to_io(io, LE)
         @data.size.to_u16.to_io(io, LE)
-        @data.to_s(io)
+        @data.to_s(io) if @data.size > 0
 
         # return number of bytes written
         bytes_needed
