@@ -1637,11 +1637,11 @@ module Zip
       # Return number of bytes needed for this Extra.
       #
       def bytes_needed : UInt16
-        4.to_u16 + @data.size.to_u16
+        (4 + @data.size).to_u16
       end
 
       def to_s(io) : UInt16
-        @code.to_u64.to_io(io, LE)
+        @code.to_u16.to_io(io, LE)
         @data.size.to_u16.to_io(io, LE)
         @data.to_s(io)
 
@@ -1770,7 +1770,7 @@ module Zip
     def self.pack(extras : Array(Extra::Base)?) : Bytes
       if extras && extras.size > 0
         # create backing buffer for extras
-        buf = Bytes.new(extras.reduce(0_u32) { |r, e| r + e.bytes_needed })
+        buf = Bytes.new(extras.reduce(0) { |r, e| r + e.bytes_needed })
 
         # create io and write each extra data to io
         io = MemoryIO.new(buf)
