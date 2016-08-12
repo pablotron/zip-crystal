@@ -15,7 +15,8 @@ require "zlib"
 # [-] full tests
 # [-] zip64
 #   [x] add zip64 parameter
-#   [ ] add zip64 extras when writing header and central
+#   [x] add zip64 extras when writing header and central
+#   [ ] add zip64 archive footer
 #   [ ] update sizes to be u64
 #   [ ] choose zip64 default for arbitrary IOs (right now it is false)
 # [ ] legacy unicode (e.g., non-bit 11) path/comment support
@@ -706,6 +707,9 @@ module Zip
     end
   end
 
+  #
+  # Classes for writing to output archives.
+  #
   module Writers
     #
     # Abstract base class for classes used to store files and directories
@@ -714,6 +718,16 @@ module Zip
     abstract class WriterEntry
       include TimeHelper
 
+      #
+      # Is this a Zip64 entry?
+      #
+      getter? :zip64
+
+      #
+      # Constructor for abstract `WriterEntry` class.  You cannot
+      # instantiate this class directly; use `Writer#add()`,
+      # `Writer#add_file()` or `Writer#add_dir() instead.
+      #
       def initialize(
         @pos      : UInt32,
         @path     : String,
@@ -729,6 +743,24 @@ module Zip
         # FIXME: these should be u64, at least for zip64
         @src_len = 0_u32
         @dst_len = 0_u32
+
+        @extras = Extra.pack(if @zip64
+          # build list of extras
+          es = [] of Extra::Base
+
+          # add zip64 to list of extras
+          es << Extra::Zip64.new(
+            file_size:        0_u64,
+            compressed_size:  0_u64,
+            # TODO: add position
+          )
+
+          # return extras
+          es
+        else
+          # no extras
+          nil
+        end)
       end
 
       #
@@ -798,24 +830,28 @@ module Zip
         # write time (u32)
         write_time(io, time)
 
-        # crc (u32), compressed size (u32), uncompressed size (u32)
-        # (these will be populated in the footer)
+        # write crc (u32)
+        # (will be populated in the footer)
         0_u32.to_u32.to_io(io, LE)
-        0_u32.to_u32.to_io(io, LE)
-        0_u32.to_u32.to_io(io, LE)
+
+        # write compressed size (u32) and uncompressed size (u32)
+        # (will be populated in the footer)
+        size = @zip64 ? UInt32::MAX : 0_u32
+        size.to_u32.to_io(io, LE)
+        size.to_u32.to_io(io, LE)
 
         # write file path length (u16)
         path_len.to_u16.to_io(io, LE)
 
         # write extras field length (u16)
-        extras_len = 0_u32
+        extras_len = @extras.size
         extras_len.to_u16.to_io(io, LE)
 
         # write path field
         path.to_s(io)
 
         # write extra fields
-        # TODO: implement this
+        @extras.to_s(io) if extras_len > 0
 
         # return number of bytes written
         30_u32 + path_len + extras_len
@@ -876,15 +912,20 @@ module Zip
         write_time(io, @time)
 
         @crc.to_u32.to_io(io, LE)
-        @dst_len.to_u32.to_io(io, LE)
-        @src_len.to_u32.to_io(io, LE)
+        if zip64?
+          UInt32::MAX.to_io(io, LE)
+          UInt32::MAX.to_io(io, LE)
+        else
+          @dst_len.to_u32.to_io(io, LE)
+          @src_len.to_u32.to_io(io, LE)
+        end
 
         # get path length and write it
         path_len = @path.bytesize
         path_len.to_u16.to_io(io, LE)
 
         # write extras field length (u16)
-        extras_len = 0_u32
+        extras_len = @extras.size
         extras_len.to_u16.to_io(io, LE)
 
         # write comment field length (u16)
@@ -892,6 +933,7 @@ module Zip
         comment_len.to_u16.to_io(io, LE)
 
         # write disk number
+        # TODO: add zip64 support
         0_u32.to_u16.to_io(io, LE)
 
         # write file attributes (internal, external)
@@ -899,13 +941,14 @@ module Zip
         @external.to_u32.to_io(io, LE)
 
         # write local header offset
+        # TODO: add zip64 support
         @pos.to_u32.to_io(io, LE)
 
         # write path field
         @path.to_s(io)
 
         # write extra fields
-        # TODO: implement this
+        @extras.to_s(io) if extras_len > 0
 
         # write comment
         @comment.to_s(io)
@@ -918,8 +961,8 @@ module Zip
     #
     # Internal class used to store files for `Writer` instance.
     #
-    # You should not need to call this method directly; it is called
-    # automatically by `Writer#add` and `Writer#add_file`.
+    # You should not need to instantiate this class directly; it is
+    # called automatically by `Writer#add` and `Writer#add_file`.
     #
     class FileEntry < WriterEntry
       include NoneCompressionHelper
@@ -1000,11 +1043,22 @@ module Zip
 
         # write crc (u32), compressed size (u32), and full size (u32)
         crc.to_u32.to_io(io, LE)
-        dst_len.to_u32.to_io(io, LE)
-        src_len.to_u32.to_io(io, LE)
 
-        # return number of bytes written
-        16_u32
+        if zip64
+          # write sizes as u64s
+          dst_len.to_u64.to_io(io, LE)
+          src_len.to_u64.to_io(io, LE)
+
+          # return number of bytes written
+          24_u32
+        else
+          # write sizes as u32s
+          dst_len.to_u32.to_io(io, LE)
+          src_len.to_u32.to_io(io, LE)
+
+          # return number of bytes written
+          16_u32
+        end
       end
     end
 
@@ -1116,6 +1170,9 @@ module Zip
     #
     def close
       assert_open
+
+      # TODO: add zip64 support
+      # if @entries.any? { |e| e.zip64? }
 
       # cache cdr position
       cdr_pos = @pos
@@ -1397,38 +1454,198 @@ module Zip
   end
 
   #
-  # Extra data associated with `Entry`.
+  # Extra data handlers.
   #
-  # You should not need to instantiate this class directly; use
-  # `Zip::Entry#extras` or `Zip::Entry#local_extras` instead.
-  #
-  # Example:
-  #
-  #     # open "foo.zip"
-  #     Zip.read("foo.zip") do |zip|
-  #       # get extra data associated with "bar.txt"
-  #       extras = zip["bar.txt"].extras
-  #     end
-  #
-  class Extra
-    property :code, :data
+  module Extra
+    #
+    # Raw extra data associated with `Entry`.
+    #
+    # You should not need to instantiate this class directly; use
+    # `Zip::Entry#extras` or `Zip::Entry#local_extras` instead.
+    #
+    # Example:
+    #
+    #     # open "foo.zip"
+    #     Zip.read("foo.zip") do |zip|
+    #       # get extra data associated with "bar.txt"
+    #       extras = zip["bar.txt"].extras
+    #     end
+    #
+    class Base
+      #
+      # Identifier for this extra entry.
+      #
+      property :code
 
-    def initialize(@code : UInt16, @data : Bytes)
+      #
+      # Data for this extra entry.
+      #
+      property :data
+
+      #
+      # Create a new raw extra data entry.
+      #
+      # You should not need to instantiate this class directly; it is
+      # created as-needed by `Writer#add`.
+      #
+      def initialize(@code : UInt16, @data : Bytes)
+      end
+
+      #
+      # Return number of bytes needed for this Extra.
+      #
+      def size : UInt16
+        4.to_u16 + @data.size.to_u16
+      end
+
+      def to_s(io) : UInt16
+        @code.to_io(io, LE)
+        @data.size.to_u16.to_io(io, LE)
+        @data.to_s(io)
+
+        # return number of bytes written
+        size
+      end
     end
 
-    def initialize(io)
-      @code = UInt16.from_io(io, LE).as(UInt16)
-      size = UInt16.from_io(io, LE).as(UInt16)
-      @data = Bytes.new(size)
-      io.read(@data)
+    #
+    # ZIP64 extra data associated with `Entry`.
+    #
+    # You should not need to instantiate this class directly; it is
+    # created as-needed by `Writer#add()`.
+    #
+    class Zip64 < Base
+      #
+      # File size (64-bit unsigned integer).
+      #
+      getter :file_size
+
+      #
+      # Compressed file size (64-bit unsigned integer).
+      #
+      getter :compressed_size
+
+      #
+      # Position in output (optional).
+      #
+      getter :pos
+
+      #
+      # Starting disk (optional).
+      #
+      getter :disk_start
+
+      #
+      # ZIP64 extra code
+      #
+      CODE = 0x0001.to_u16
+
+      #
+      # Create ZIP64 extra data associated with `Entry` from given
+      # attributes.
+      #
+      # You should not need to instantiate this class directly; it is
+      # created as-needed by `Writer#add()`.
+      #
+      def initialize(
+        @file_size        : UInt64 = 0_u64,
+        @compressed_size  : UInt64 = 0_u64,
+        @pos              : UInt64? = nil,
+        @disk_start       : UInt32? = nil,
+      )
+        len = 16_u32
+        len += 8 if @pos && @disk_start
+        len += 4 if @disk_start
+
+        # create backing buffer and mem io
+        buf = Bytes.new(len)
+        io = MemoryIO.new(buf)
+
+        @file_size.to_u64.to_io(io, LE)
+        @compressed_size.to_u64.to_io(io, LE)
+        @pos.not_nil!.to_u64.to_io(io, LE) if @pos
+        @disk_start.not_nil!.to_u32.to_io(io, LE) if @disk_start
+
+        # close io
+        io.close
+
+        super(CODE, buf)
+      end
+
+      #
+      # Parse ZIP64 extra data from given buffer.
+      #
+      # You should not need to instantiate this class directly; it is
+      # created as-needed by `Archive`.
+      #
+      def initialize(data : Bytes)
+        super(CODE, data)
+
+        # create memory io over buffer
+        io = MemoryIO.new(data, false)
+
+        @file_size = UInt64.from_io(io, LE).as(UInt64)
+        @compressed_size = UInt64.from_io(io, LE).as(UInt64)
+
+        @pos, @disk_start = case data.size - 16
+        when 12
+          { UInt64.from_io(io, LE), UInt32.from_io(io, LE) }
+        when 8
+          { UInt64.from_io(io, LE), nil }
+        when 4
+          { nil, UInt32.from_io(io, LE) }
+        when 0
+          { nil, nil }
+        else
+          raise Error.new("invalid Zip64 extra data: #{data.size}")
+        end
+      end
     end
 
-    delegate size, to: @data
+    #
+    # Parse `Extra` data from given IO *io*.
+    #
+    def self.read(io) : Base
+      # read code and length
+      code = UInt16.from_io(io, LE).as(UInt16)
+      len = UInt16.from_io(io, LE).as(UInt16)
 
-    def to_s(io) : UInt32
-      @code.to_s(io, LE)
-      @data.size.to_u16.to_s(io, LE)
-      @data.to_s(io)
+      # read buffer
+      data = Bytes.new(len)
+      io.read(data)
+
+      case code
+      when Zip64::CODE
+        Zip64.new(data)
+      else
+        Base.new(code, data)
+      end
+    end
+
+    #
+    # Static, zero-length `Bytes` when `Extra.pack()` is called with
+    # *nil* or an empty array.
+    #
+    EMPTY_EXTRAS = Bytes.new(0)
+
+    #
+    # Encode array of `Extra::Base` and return buffer.
+    #
+    def self.pack(extras : Array(Extra::Base)?) : Bytes
+      if extras && extras.size > 0
+        # create backing buffer for extras
+        buf = Bytes.new(extras.reduce(0_u32) { |r, e| r + e.size })
+
+        # create io and write each extra data to io
+        io = MemoryIO.new(buf)
+        extras.each { |e| e.to_s(io) }
+        io.close
+
+        # return buffer
+        buf
+      else
+        EMPTY_EXTRAS
+      end
     end
   end
 
@@ -1721,7 +1938,7 @@ module Zip
 
       # read path, extras, and comment from data memory io
       @path = read_string(data_mem_io, @path_len, "name") as String
-      @extras = read_extras(data_mem_io, @extras_len) as Array(Extra)
+      @extras = read_extras(data_mem_io, @extras_len) as Array(Extra::Base)
       @comment = read_string(data_mem_io, @comment_len, "comment") as String
 
       # close data memory io
@@ -1863,7 +2080,7 @@ module Zip
     #       extras = zip["bar.txt"].local_extras
     #     end
     #
-    def local_extras : Array(Extra)
+    def local_extras : Array(Extra::Base)
       unless @local_extras
         # move to extras_len in local header
         @io.pos = @pos + 26_u32
@@ -1876,7 +2093,7 @@ module Zip
         @io.pos = @pos + 30_u32 + name_len
 
         # read local extras
-        @local_extras = read_extras(@io, extras_len) as Array(Extra)
+        @local_extras = read_extras(@io, extras_len) as Array(Extra::Base)
       end
 
       # return results
@@ -1886,9 +2103,9 @@ module Zip
     #
     # Returns an array of `Extra` attributes of length `len` from IO `io`.
     #
-    private def read_extras(io, len : UInt16) : Array(Extra)
+    private def read_extras(io, len : UInt16) : Array(Extra::Base)
       # read extras
-      r = [] of Extra
+      r = [] of Extra::Base
 
       if len > 0
         # create buffer of extras data
@@ -1902,7 +2119,7 @@ module Zip
 
         # read extras from io
         while mem_io.pos != mem_io.size
-          r << Extra.new(mem_io)
+          r << Extra.read(mem_io)
         end
 
         # close memory io
