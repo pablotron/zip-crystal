@@ -50,8 +50,23 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
       <a href="Zip/Extra.html">Extra</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Base" data-name="zip::extra::base">
+      <a href="Zip/Extra/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Zip64" data-name="zip::extra::zip64">
+      <a href="Zip/Extra/Zip64.html">Zip64</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -125,6 +140,18 @@
 <p>Read and write zip archives natively from
 <a href="http://crystal-lang.org/" target="_blank">Crystal</a>.</p>
 
+<p><em>Features</em></p>
+
+<ul><li>Read and write zip files</li><li>Native Crystal, no dependencies other than zlib</li><li>Stream writing (e.g. write zip to socket, pipe or other arbitrary,</li></ul>
+
+<p>non-seekable IO)</p>
+
+<ul><li>ZIP64 support</li><li>Store and DEFLATE compression</li><li>UTF-8 filename and comment support (EFS)</li></ul>
+
+<p><em>TODO</em></p>
+
+<ul><li>LZMA and BZip2 compression</li><li>Encryption (Legacy and Strong Encryption)</li><li>Split archives (e.g. multi-disk archives)</li><li>Legacy Unicode support</li></ul>
+
 <h2>Installation</h2>
 
 <p>Add this to your application's <code>shard.yml</code>:</p>
@@ -160,10 +187,6 @@ mem_io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">
 
 <p>See the <a href="https://pablotron.github.com/zip-crystal/" target="_blank">API documentation</a>
 for additional information.</p>
-
-<h2>Development</h2>
-
-<p>TODO: Write development instructions here</p>
 
 <h2>Contributing</h2>
 

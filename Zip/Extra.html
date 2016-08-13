@@ -50,8 +50,23 @@
       
     </li>
   
-  <li class=" current" data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+  <li class="parent current" data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
       <a href="../Zip/Extra.html">Extra</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Base" data-name="zip::extra::base">
+      <a href="../Zip/Extra/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Zip64" data-name="zip::extra::zip64">
+      <a href="../Zip/Extra/Zip64.html">Zip64</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -122,30 +137,17 @@
 <div id="main-content">
 <h1 class="type-name">
 
-  <span class="kind">class</span> Zip::Extra
+  <span class="kind">module</span> Zip::Extra
 
 </h1>
 
-
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Zip/Extra.html">Zip::Extra</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
 
   <h2>Overview</h2>
 
-  <p>Extra data associated with <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
-
-<p>You should not need to instantiate this class directly; use
-<code><a href="../Zip/Entry.html#extras%3AArray%28Zip%3A%3AExtra%29-instance-method">Zip::Entry#extras</a></code> or <code><a href="../Zip/Entry.html#local_extras%3AArray%28Extra%29-instance-method">Zip::Entry#local_extras</a></code> instead.</p>
-
-<p>Example:</p>
-
-<pre><code><span class="c"># open &quot;foo.zip&quot;</span>
-<span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
-  <span class="c"># get extra data associated with &quot;bar.txt&quot;</span>
-  extras <span class="o">=</span> zip[<span class="s">&quot;bar.txt&quot;</span>].extras
-<span class="k">end</span></code></pre>
+  <p>Extra data handlers.</p>
 
 
 
@@ -171,58 +173,22 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28code%3AUInt16%2Cdata%3ABytes%29-class-method" class="signature"><strong>.new</strong>(code : UInt16, data : Bytes)</a>
+        <a href="#pack%28extras%3AArray%28Extra%3A%3ABase%29%7CNil%29%3ABytes-class-method" class="signature"><strong>.pack</strong>(extras : Array(Extra::Base) | Nil) : Bytes</a>
+        
+          <div class="summary"><p>Encode array of <code><a href="../Zip/Extra/Base.html">Extra::Base</a></code> and return buffer.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#new%28io%29-class-method" class="signature"><strong>.new</strong>(io)</a>
+        <a href="#read%28io%29%3ABase-class-method" class="signature"><strong>.read</strong>(io) : Base</a>
+        
+          <div class="summary"><p>Parse <code><a href="../Zip/Extra.html">Extra</a></code> data from given IO <em>io</em>.</p></div>
         
       </li>
     
   </ul>
 
 
-
-  <h2>Instance Method Summary</h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#code%3AUInt16-instance-method" class="signature"><strong>#code</strong> : UInt16</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#code%3D%28code%29-instance-method" class="signature"><strong>#code=</strong>(code)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#data%3ASlice%28UInt8%29-instance-method" class="signature"><strong>#data</strong> : Slice(UInt8)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#data%3D%28data%29-instance-method" class="signature"><strong>#data=</strong>(data)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#size%28%2Aargs%2C%2A%2Aoptions%2C%26block%29-instance-method" class="signature"><strong>#size</strong>(*args, **options, &block)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#size%28%2Aargs%2C%2A%2Aoptions%29-instance-method" class="signature"><strong>#size</strong>(*args, **options)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#to_s%28io%29%3AUInt32-instance-method" class="signature"><strong>#to_s</strong>(io) : UInt32</a>
-        
-      </li>
-    
-  </ul>
 
 
 
@@ -230,32 +196,20 @@
 
 <div class="methods-inherited">
   
-    
-
-
-    
-
-
-  
-    
-
-
-    
-
-
-  
 </div>
 
 
   <h2>Class Method Detail</h2>
   
-    <div class="entry-detail" id="new&#40;code:UInt16,data:Bytes&#41;-class-method">
+    <div class="entry-detail" id="pack&#40;extras:Array&#40;Extra::Base&#41;|Nil&#41;:Bytes-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(code : UInt16, data : Bytes)
+        def self.<strong>pack</strong>(extras : Array(<a href="../Zip/Extra/Base.html">Extra::Base</a>) | Nil) : Bytes
 
-        <a class="method-permalink" href="#new%28code%3AUInt16%2Cdata%3ABytes%29-class-method">#</a>
+        <a class="method-permalink" href="#pack%28extras%3AArray%28Extra%3A%3ABase%29%7CNil%29%3ABytes-class-method">#</a>
       </div>
+      
+        <div class="doc"><p>Encode array of <code><a href="../Zip/Extra/Base.html">Extra::Base</a></code> and return buffer.</p></div>
       
       <br/>
       <div>
@@ -263,13 +217,15 @@
       </div>
     </div>
   
-    <div class="entry-detail" id="new&#40;io&#41;-class-method">
+    <div class="entry-detail" id="read&#40;io&#41;:Base-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(io)
+        def self.<strong>read</strong>(io) : <a href="../Zip/Extra/Base.html">Base</a>
 
-        <a class="method-permalink" href="#new%28io%29-class-method">#</a>
+        <a class="method-permalink" href="#read%28io%29%3ABase-class-method">#</a>
       </div>
+      
+        <div class="doc"><p>Parse <code><a href="../Zip/Extra.html">Extra</a></code> data from given IO <em>io</em>.</p></div>
       
       <br/>
       <div>
@@ -279,107 +235,6 @@
   
 
 
-
-  <h2>Instance Method Detail</h2>
-  
-    <div class="entry-detail" id="code:UInt16-instance-method">
-      <div class="signature">
-        
-        def <strong>code</strong> : UInt16
-
-        <a class="method-permalink" href="#code%3AUInt16-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="code&#61;&#40;code&#41;-instance-method">
-      <div class="signature">
-        
-        def <strong>code=</strong>(code)
-
-        <a class="method-permalink" href="#code%3D%28code%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="data:Slice&#40;UInt8&#41;-instance-method">
-      <div class="signature">
-        
-        def <strong>data</strong> : Slice(UInt8)
-
-        <a class="method-permalink" href="#data%3ASlice%28UInt8%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="data&#61;&#40;data&#41;-instance-method">
-      <div class="signature">
-        
-        def <strong>data=</strong>(data)
-
-        <a class="method-permalink" href="#data%3D%28data%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="size&#40;*args,**options,&amp;block&#41;-instance-method">
-      <div class="signature">
-        
-        def <strong>size</strong>(*args, **options, &block)
-
-        <a class="method-permalink" href="#size%28%2Aargs%2C%2A%2Aoptions%2C%26block%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="size&#40;*args,**options&#41;-instance-method">
-      <div class="signature">
-        
-        def <strong>size</strong>(*args, **options)
-
-        <a class="method-permalink" href="#size%28%2Aargs%2C%2A%2Aoptions%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="to_s&#40;io&#41;:UInt32-instance-method">
-      <div class="signature">
-        
-        def <strong>to_s</strong>(io) : UInt32
-
-        <a class="method-permalink" href="#to_s%28io%29%3AUInt32-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
 
 
 

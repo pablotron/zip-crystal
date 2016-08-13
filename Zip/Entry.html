@@ -50,8 +50,23 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
       <a href="../Zip/Extra.html">Extra</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Base" data-name="zip::extra::base">
+      <a href="../Zip/Extra/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Zip64" data-name="zip::extra::zip64">
+      <a href="../Zip/Extra/Zip64.html">Zip64</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -209,9 +224,9 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </li>
     
       <li class="entry-summary">
-        <a href="#compressed_size%3AUInt32-instance-method" class="signature"><strong>#compressed_size</strong> : UInt32</a>
+        <a href="#compressed_size%3AUInt64-instance-method" class="signature"><strong>#compressed_size</strong> : UInt64</a>
         
-          <div class="summary"><p>Get compressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
+          <div class="summary"><p>Get compressed size for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
         
       </li>
     
@@ -237,7 +252,7 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </li>
     
       <li class="entry-summary">
-        <a href="#extras%3AArray%28Zip%3A%3AExtra%29-instance-method" class="signature"><strong>#extras</strong> : Array(Zip::Extra)</a>
+        <a href="#extras%3AArray%28Zip%3A%3AExtra%3A%3ABase%29-instance-method" class="signature"><strong>#extras</strong> : Array(Zip::Extra::Base)</a>
         
           <div class="summary"><p>Get <code><a href="../Zip/Extra.html">Extra</a></code> data for this <code><a href="../Zip/Entry.html">Entry</a></code> as an <code>Array</code>.</p></div>
         
@@ -258,7 +273,7 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </li>
     
       <li class="entry-summary">
-        <a href="#local_extras%3AArray%28Extra%29-instance-method" class="signature"><strong>#local_extras</strong> : Array(Extra)</a>
+        <a href="#local_extras%3AArray%28Extra%3A%3ABase%29-instance-method" class="signature"><strong>#local_extras</strong> : Array(Extra::Base)</a>
         
           <div class="summary"><p>Returns an array of <code><a href="../Zip/Extra.html">Extra</a></code> attributes for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
         
@@ -279,16 +294,16 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </li>
     
       <li class="entry-summary">
-        <a href="#pos%3AUInt32-instance-method" class="signature"><strong>#pos</strong> : UInt32</a>
+        <a href="#pos%3AUInt64-instance-method" class="signature"><strong>#pos</strong> : UInt64</a>
         
-          <div class="summary"><p>Get position for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
+          <div class="summary"><p>Get position for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#size%3AUInt32-instance-method" class="signature"><strong>#size</strong> : UInt32</a>
+        <a href="#size%3AUInt64-instance-method" class="signature"><strong>#size</strong> : UInt64</a>
         
-          <div class="summary"><p>Get uncompressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p></div>
+          <div class="summary"><p>Get uncompressed size for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p></div>
         
       </li>
     
@@ -314,14 +329,14 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </li>
     
       <li class="entry-summary">
-        <a href="#write%28path%3AString%29%3AUInt32-instance-method" class="signature"><strong>#write</strong>(path : String) : UInt32</a>
+        <a href="#write%28path%3AString%29%3AUInt64-instance-method" class="signature"><strong>#write</strong>(path : String) : UInt64</a>
         
           <div class="summary"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given path <em>path</em> and return the number of bytes written.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#write%28dst_io%3AIO%29%3AUInt32-instance-method" class="signature"><strong>#write</strong>(dst_io : IO) : UInt32</a>
+        <a href="#write%28dst_io%3AIO%29%3AUInt64-instance-method" class="signature"><strong>#write</strong>(dst_io : IO) : UInt64</a>
         
           <div class="summary"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given <code>IO</code>.</p></div>
         
@@ -422,15 +437,15 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </div>
     </div>
   
-    <div class="entry-detail" id="compressed_size:UInt32-instance-method">
+    <div class="entry-detail" id="compressed_size:UInt64-instance-method">
       <div class="signature">
         
-        def <strong>compressed_size</strong> : UInt32
+        def <strong>compressed_size</strong> : UInt64
 
-        <a class="method-permalink" href="#compressed_size%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#compressed_size%3AUInt64-instance-method">#</a>
       </div>
       
-        <div class="doc"><p>Get compressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
+        <div class="doc"><p>Get compressed size for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
 
 <pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
   <span class="c"># print compressed size for each entry</span>
@@ -514,12 +529,12 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </div>
     </div>
   
-    <div class="entry-detail" id="extras:Array&#40;Zip::Extra&#41;-instance-method">
+    <div class="entry-detail" id="extras:Array&#40;Zip::Extra::Base&#41;-instance-method">
       <div class="signature">
         
-        def <strong>extras</strong> : Array(<a href="../Zip/Extra.html">Zip::Extra</a>)
+        def <strong>extras</strong> : Array(<a href="../Zip/Extra/Base.html">Zip::Extra::Base</a>)
 
-        <a class="method-permalink" href="#extras%3AArray%28Zip%3A%3AExtra%29-instance-method">#</a>
+        <a class="method-permalink" href="#extras%3AArray%28Zip%3A%3AExtra%3A%3ABase%29-instance-method">#</a>
       </div>
       
         <div class="doc"><p>Get <code><a href="../Zip/Extra.html">Extra</a></code> data for this <code><a href="../Zip/Entry.html">Entry</a></code> as an <code>Array</code>.</p>
@@ -583,12 +598,12 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </div>
     </div>
   
-    <div class="entry-detail" id="local_extras:Array&#40;Extra&#41;-instance-method">
+    <div class="entry-detail" id="local_extras:Array&#40;Extra::Base&#41;-instance-method">
       <div class="signature">
         
-        def <strong>local_extras</strong> : Array(<a href="../Zip/Extra.html">Extra</a>)
+        def <strong>local_extras</strong> : Array(<a href="../Zip/Extra/Base.html">Extra::Base</a>)
 
-        <a class="method-permalink" href="#local_extras%3AArray%28Extra%29-instance-method">#</a>
+        <a class="method-permalink" href="#local_extras%3AArray%28Extra%3A%3ABase%29-instance-method">#</a>
       </div>
       
         <div class="doc"><p>Returns an array of <code><a href="../Zip/Extra.html">Extra</a></code> attributes for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
@@ -597,7 +612,7 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
 associated with the file entry itself, and the file's entry in the
 Central Directory.</p>
 
-<p>The <code><a href="../Zip/Entry.html#extras%3AArray%28Zip%3A%3AExtra%29-instance-method">#extras</a></code> method returns the <code><a href="../Zip/Extra.html">Extra</a></code> attributes from the
+<p>The <code><a href="../Zip/Entry.html#extras%3AArray%28Zip%3A%3AExtra%3A%3ABase%29-instance-method">#extras</a></code> method returns the <code><a href="../Zip/Extra.html">Extra</a></code> attributes from the
 file's entry in the Central Directory, and this method returns the
 <code><a href="../Zip/Extra.html">Extra</a></code> data from the file entry itself.</p>
 
@@ -661,15 +676,15 @@ file's entry in the Central Directory, and this method returns the
       </div>
     </div>
   
-    <div class="entry-detail" id="pos:UInt32-instance-method">
+    <div class="entry-detail" id="pos:UInt64-instance-method">
       <div class="signature">
         
-        def <strong>pos</strong> : UInt32
+        def <strong>pos</strong> : UInt64
 
-        <a class="method-permalink" href="#pos%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#pos%3AUInt64-instance-method">#</a>
       </div>
       
-        <div class="doc"><p>Get position for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
+        <div class="doc"><p>Get position for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
 
 <pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
   <span class="c"># print position for each entry</span>
@@ -684,15 +699,15 @@ file's entry in the Central Directory, and this method returns the
       </div>
     </div>
   
-    <div class="entry-detail" id="size:UInt32-instance-method">
+    <div class="entry-detail" id="size:UInt64-instance-method">
       <div class="signature">
         
-        def <strong>size</strong> : UInt32
+        def <strong>size</strong> : UInt64
 
-        <a class="method-permalink" href="#size%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#size%3AUInt64-instance-method">#</a>
       </div>
       
-        <div class="doc"><p>Get uncompressed size for this <code><a href="../Zip/Entry.html">Entry</a></code> as a <code>UInt32</code>.</p>
+        <div class="doc"><p>Get uncompressed size for this <code><a href="../Zip/Entry.html">Entry</a></code>.</p>
 
 <pre><code><span class="t">Zip</span>.read(<span class="s">&quot;foo.zip&quot;</span>) <span class="k">do</span> <span class="o">|</span>zip<span class="o">|</span>
   <span class="c"># print uncompressed size for each entry</span>
@@ -776,12 +791,12 @@ file's entry in the Central Directory, and this method returns the
       </div>
     </div>
   
-    <div class="entry-detail" id="write&#40;path:String&#41;:UInt32-instance-method">
+    <div class="entry-detail" id="write&#40;path:String&#41;:UInt64-instance-method">
       <div class="signature">
         
-        def <strong>write</strong>(path : String) : UInt32
+        def <strong>write</strong>(path : String) : UInt64
 
-        <a class="method-permalink" href="#write%28path%3AString%29%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#write%28path%3AString%29%3AUInt64-instance-method">#</a>
       </div>
       
         <div class="doc"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given path <em>path</em> and return the
@@ -807,12 +822,12 @@ compression method is unsupported.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="write&#40;dst_io:IO&#41;:UInt32-instance-method">
+    <div class="entry-detail" id="write&#40;dst_io:IO&#41;:UInt64-instance-method">
       <div class="signature">
         
-        def <strong>write</strong>(dst_io : IO) : UInt32
+        def <strong>write</strong>(dst_io : IO) : UInt64
 
-        <a class="method-permalink" href="#write%28dst_io%3AIO%29%3AUInt32-instance-method">#</a>
+        <a class="method-permalink" href="#write%28dst_io%3AIO%29%3AUInt64-instance-method">#</a>
       </div>
       
         <div class="doc"><p>Write contents of <code><a href="../Zip/Entry.html">Entry</a></code> into given <code>IO</code>.</p>

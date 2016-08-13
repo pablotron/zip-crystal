@@ -50,8 +50,23 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
       <a href="../../Zip/Extra.html">Extra</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Base" data-name="zip::extra::base">
+      <a href="../../Zip/Extra/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Zip64" data-name="zip::extra::zip64">
+      <a href="../../Zip/Extra/Zip64.html">Zip64</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -137,7 +152,7 @@
   <p>Internal class used to store files for <code><a href="../../Zip/Writer.html">Writer</a></code> instance.</p>
 
 <p>You should not need to instantiate this class directly; use
-<code><a href="../../Zip/Writer.html#add_dir%28path%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt32-instance-method">Writer#add_dir</a></code> instead.</p>
+<code><a href="../../Zip/Writer.html#add_dir%28path%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt64-instance-method">Writer#add_dir</a></code> instead.</p>
 
 
 
@@ -179,7 +194,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28pos%3AUInt32%2Cpath%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29-class-method" class="signature"><strong>.new</strong>(pos : UInt32, path : String, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>)</a>
+        <a href="#new%28pos%3AUInt64%2Cpath%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29-class-method" class="signature"><strong>.new</strong>(pos : UInt64, path : String, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>)</a>
         
           <div class="summary"><p>Create a new DirEntry instance.</p></div>
         
@@ -200,8 +215,8 @@
   <h3>Instance methods inherited from class <code><a href="../../Zip/Writers/WriterEntry.html">Zip::Writers::WriterEntry</a></code></h3>
   
   
-    <a href="../../Zip/Writers/WriterEntry.html#to_s%28dst_io%29%3AUInt32-instance-method" class="tooltip">
-      <span>to_s(dst_io) : UInt32</span>
+    <a href="../../Zip/Writers/WriterEntry.html#to_s%28dst_io%29%3AUInt64-instance-method" class="tooltip">
+      <span>to_s(dst_io) : UInt64</span>
     to_s</a>, 
     
   
@@ -215,9 +230,14 @@
     write_central</a>, 
     
   
-    <a href="../../Zip/Writers/WriterEntry.html#write_footer%28io%3AIO%2Ccrc%3AUInt32%2Csrc_len%3AUInt32%2Cdst_len%3AUInt32%29%3AUInt32-instance-method" class="tooltip">
-      <span>write_footer(io : IO, crc : UInt32, src_len : UInt32, dst_len : UInt32) : UInt32</span>
-    write_footer</a>
+    <a href="../../Zip/Writers/WriterEntry.html#write_footer%28io%3AIO%2Ccrc%3AUInt32%2Csrc_len%3AUInt64%2Cdst_len%3AUInt64%2Czip64%3ABool%29%3AUInt32-instance-method" class="tooltip">
+      <span>write_footer(io : IO, crc : UInt32, src_len : UInt64, dst_len : UInt64, zip64 : Bool) : UInt32</span>
+    write_footer</a>, 
+    
+  
+    <a href="../../Zip/Writers/WriterEntry.html#zip64%3F%3ABool-instance-method" class="tooltip">
+      <span>zip64? : Bool</span>
+    zip64?</a>
     
   
 
@@ -227,8 +247,8 @@
   <h3>Class methods inherited from class <code><a href="../../Zip/Writers/WriterEntry.html">Zip::Writers::WriterEntry</a></code></h3>
   
   
-    <a href="../../Zip/Writers/WriterEntry.html#new%28pos%3AUInt32%2Cpath%3AString%2Cmethod%3ACompressionMethod%3D%3Cspanclass%3D%22t%22%3ECompressionMethod%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFLATE%3C%2Fspan%3E%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cflags%3AGeneralFlags%3D%3Cspanclass%3D%22t%22%3EGeneralFlags%3C%2Fspan%3E.flags%2Cexternal%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%29-class-method" class="tooltip">
-      <span>new(pos : UInt32, path : String, method : CompressionMethod = <span class="t">CompressionMethod</span><span class="t">::</span><span class="t">DEFLATE</span>, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>, flags : GeneralFlags = <span class="t">GeneralFlags</span>.flags, external : UInt32 = <span class="n">0_u32</span>)</span>
+    <a href="../../Zip/Writers/WriterEntry.html#new%28pos%3AUInt64%2Cpath%3AString%2Cmethod%3ACompressionMethod%3D%3Cspanclass%3D%22t%22%3ECompressionMethod%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFLATE%3C%2Fspan%3E%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cflags%3AGeneralFlags%3D%3Cspanclass%3D%22t%22%3EGeneralFlags%3C%2Fspan%3E.flags%2Cexternal%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Czip64%3ABool%3D%3Cspanclass%3D%22n%22%3Efalse%3C%2Fspan%3E%29-class-method" class="tooltip">
+      <span>new(pos : UInt64, path : String, method : CompressionMethod = <span class="t">CompressionMethod</span><span class="t">::</span><span class="t">DEFLATE</span>, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>, flags : GeneralFlags = <span class="t">GeneralFlags</span>.flags, external : UInt32 = <span class="n">0_u32</span>, zip64 : Bool = <span class="n">false</span>)</span>
     new</a>
     
   
@@ -261,18 +281,18 @@
 
   <h2>Class Method Detail</h2>
   
-    <div class="entry-detail" id="new&#40;pos:UInt32,path:String,time:Time&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Time&lt;/span&gt;.now,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&#41;-class-method">
+    <div class="entry-detail" id="new&#40;pos:UInt64,path:String,time:Time&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Time&lt;/span&gt;.now,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&#41;-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(pos : UInt32, path : String, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>)
+        def self.<strong>new</strong>(pos : UInt64, path : String, time : Time = <span class="t">Time</span>.now, comment : String = <span class="s">&quot;&quot;</span>)
 
-        <a class="method-permalink" href="#new%28pos%3AUInt32%2Cpath%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28pos%3AUInt64%2Cpath%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29-class-method">#</a>
       </div>
       
         <div class="doc"><p>Create a new DirEntry instance.</p>
 
 <p>You should not need to call this method directly; use
-<code><a href="../../Zip/Writer.html#add_dir%28path%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt32-instance-method">Writer#add_dir</a></code> instead.</p></div>
+<code><a href="../../Zip/Writer.html#add_dir%28path%3AString%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%29%3AUInt64-instance-method">Writer#add_dir</a></code> instead.</p></div>
       
       <br/>
       <div>

@@ -50,8 +50,23 @@
       
     </li>
   
-  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
       <a href="Zip/Extra.html">Extra</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Base" data-name="zip::extra::base">
+      <a href="Zip/Extra/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Zip64" data-name="zip::extra::zip64">
+      <a href="Zip/Extra/Zip64.html">Zip64</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -134,11 +149,25 @@
 
   <p>Library for reading and writing zip files.</p>
 
+<p>Features:</p>
+
+<ul><li>Read and write zip files</li><li>Native Crystal, no dependencies other than zlib</li><li>Stream writing (e.g. write zip to socket, pipe or other arbitrary,</li></ul>
+
+<p>non-seekable IO)</p>
+
+<ul><li>ZIP64 support</li><li>Store and DEFLATE compression</li><li>UTF-8 filename and comment support (EFS)</li></ul>
+
+<p>TODO:</p>
+
+<ul><li>LZMA and BZip2 compression</li><li>Encryption (Legacy and Strong Encryption)</li><li>Split archives (e.g. multi-disk archives)</li><li>Legacy Unicode support</li></ul>
+
 <p>Examples:</p>
 
 <p>Reading from a zip file:</p>
 
-<pre><code><span class="c"># create output MemoryIO</span>
+<pre><code><span class="k">require</span> <span class="s">&quot;zip-crystal/zip&quot;</span>
+
+<span class="c"># create output MemoryIO</span>
 mem_io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new</span>
 
 <span class="c"># read from &quot;foo.zip&quot;</span>
@@ -187,8 +216,20 @@ mem_io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">
       </dd>
       
     
+      <dt class="entry-const" id="EMPTY_SLICE">
+        <strong>EMPTY_SLICE</strong> = <code><span class="t">Bytes</span>.<span class="k">new</span>(<span class="n">0</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>:nodoc:
+Static, zero-length <code>Bytes</code> used when empty buffer reference is
+needed.
+:nodoc:</p>
+      </dd>
+      
+    
       <dt class="entry-const" id="MAGIC">
-        <strong>MAGIC</strong> = <code>{cdr_header: <span class="n">33639248_u32</span>, cdr_footer: <span class="n">101010256_u32</span>, file_header: <span class="n">67324752_u32</span>, file_footer: <span class="n">134695760_u32</span>}</code>
+        <strong>MAGIC</strong> = <code>{cdr_header: <span class="n">33639248_u32</span>, cdr_footer: <span class="n">101010256_u32</span>, file_header: <span class="n">67324752_u32</span>, file_footer: <span class="n">134695760_u32</span>, z64_footer: <span class="n">101075792_u32</span>, z64_locator: <span class="n">117853008_u32</span>}</code>
       </dt>
       
       <dd class="entry-const-doc">
@@ -234,14 +275,14 @@ mem_io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">
       </li>
     
       <li class="entry-summary">
-        <a href="#write%28io%3AIO%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method" class="signature"><strong>.write</strong>(io : IO, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : Version = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : Writer -> ) : UInt32</a>
+        <a href="#write%28io%3AIO%2Cpos%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt64-class-method" class="signature"><strong>.write</strong>(io : IO, pos : UInt64 = <span class="n">0_u64</span>, comment : String = <span class="s">&quot;&quot;</span>, version : Version = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : Writer -> ) : UInt64</a>
         
           <div class="summary"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output IO <em>io</em> and yield it to the given block.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#write%28path%3AString%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method" class="signature"><strong>.write</strong>(path : String, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : Version = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : Writer -> ) : UInt32</a>
+        <a href="#write%28path%3AString%2Cpos%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt64-class-method" class="signature"><strong>.write</strong>(path : String, pos : UInt64 = <span class="n">0_u64</span>, comment : String = <span class="s">&quot;&quot;</span>, version : Version = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : Writer -> ) : UInt64</a>
         
           <div class="summary"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output file <em>path</em> and yield it to the given block.</p></div>
         
@@ -342,12 +383,12 @@ io <span class="o">=</span> <span class="t">MemoryIO</span>.<span class="k">new<
       </div>
     </div>
   
-    <div class="entry-detail" id="write&#40;io:IO,pos:UInt32&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u32&lt;/span&gt;,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,version:Version&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Version&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;::&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;DEFAULT&lt;/span&gt;,&amp;cb:Writer-&gt;&#41;:UInt32-class-method">
+    <div class="entry-detail" id="write&#40;io:IO,pos:UInt64&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u64&lt;/span&gt;,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,version:Version&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Version&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;::&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;DEFAULT&lt;/span&gt;,&amp;cb:Writer-&gt;&#41;:UInt64-class-method">
       <div class="signature">
         
-        def self.<strong>write</strong>(io : IO, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : <a href="Zip/Version.html">Version</a> = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : <a href="Zip/Writer.html">Writer</a> -> ) : UInt32
+        def self.<strong>write</strong>(io : IO, pos : UInt64 = <span class="n">0_u64</span>, comment : String = <span class="s">&quot;&quot;</span>, version : <a href="Zip/Version.html">Version</a> = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : <a href="Zip/Writer.html">Writer</a> -> ) : UInt64
 
-        <a class="method-permalink" href="#write%28io%3AIO%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method">#</a>
+        <a class="method-permalink" href="#write%28io%3AIO%2Cpos%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt64-class-method">#</a>
       </div>
       
         <div class="doc"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output IO <em>io</em> and yield it to
@@ -369,12 +410,12 @@ the given block.  Returns number of bytes written.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="write&#40;path:String,pos:UInt32&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u32&lt;/span&gt;,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,version:Version&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Version&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;::&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;DEFAULT&lt;/span&gt;,&amp;cb:Writer-&gt;&#41;:UInt32-class-method">
+    <div class="entry-detail" id="write&#40;path:String,pos:UInt64&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u64&lt;/span&gt;,comment:String&#61;&lt;spanclass&#61;&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,version:Version&#61;&lt;spanclass&#61;&quot;t&quot;&gt;Version&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;::&lt;/span&gt;&lt;spanclass&#61;&quot;t&quot;&gt;DEFAULT&lt;/span&gt;,&amp;cb:Writer-&gt;&#41;:UInt64-class-method">
       <div class="signature">
         
-        def self.<strong>write</strong>(path : String, pos : UInt32 = <span class="n">0_u32</span>, comment : String = <span class="s">&quot;&quot;</span>, version : <a href="Zip/Version.html">Version</a> = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : <a href="Zip/Writer.html">Writer</a> -> ) : UInt32
+        def self.<strong>write</strong>(path : String, pos : UInt64 = <span class="n">0_u64</span>, comment : String = <span class="s">&quot;&quot;</span>, version : <a href="Zip/Version.html">Version</a> = <span class="t">Version</span><span class="t">::</span><span class="t">DEFAULT</span>, &cb : <a href="Zip/Writer.html">Writer</a> -> ) : UInt64
 
-        <a class="method-permalink" href="#write%28path%3AString%2Cpos%3AUInt32%3D%3Cspanclass%3D%22n%22%3E0_u32%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt32-class-method">#</a>
+        <a class="method-permalink" href="#write%28path%3AString%2Cpos%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Cversion%3AVersion%3D%3Cspanclass%3D%22t%22%3EVersion%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFAULT%3C%2Fspan%3E%2C%26cb%3AWriter-%3E%29%3AUInt64-class-method">#</a>
       </div>
       
         <div class="doc"><p>Create a <code><a href="Zip/Writer.html">Zip::Writer</a></code> for the output file <em>path</em> and yield it to

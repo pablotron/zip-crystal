@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta id="repository-name" content="github.com/pablotron/zip-crystal">
+  <link href="../../css/style.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="../../js/doc.js"></script>
+  <title>Zip::Extra::Zip64 - github.com/pablotron/zip-crystal</title>
+</head>
+<body>
+
+<div id="types-list">
+  <div id="search-box">
+    <input type="search" id="search-input" placeholder="Search...">
+  </div>
+
+  <ul>
+    <li><a href="../../index.html">README</a></li>
+  </ul>
+
+  <ul>
+  
+  <li class="parent open current" data-id="github.com/pablotron/zip-crystal/Zip" data-name="zip">
+      <a href="../../Zip.html">Zip</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Archive" data-name="zip::archive">
+      <a href="../../Zip/Archive.html">Archive</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/CompressionMethod" data-name="zip::compressionmethod">
+      <a href="../../Zip/CompressionMethod.html">CompressionMethod</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/DeflateCompressionHelper" data-name="zip::deflatecompressionhelper">
+      <a href="../../Zip/DeflateCompressionHelper.html">DeflateCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Entry" data-name="zip::entry">
+      <a href="../../Zip/Entry.html">Entry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Error" data-name="zip::error">
+      <a href="../../Zip/Error.html">Error</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="github.com/pablotron/zip-crystal/Zip/Extra" data-name="zip::extra">
+      <a href="../../Zip/Extra.html">Extra</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Extra/Base" data-name="zip::extra::base">
+      <a href="../../Zip/Extra/Base.html">Base</a>
+      
+    </li>
+  
+  <li class=" current" data-id="github.com/pablotron/zip-crystal/Zip/Extra/Zip64" data-name="zip::extra::zip64">
+      <a href="../../Zip/Extra/Zip64.html">Zip64</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/GeneralFlags" data-name="zip::generalflags">
+      <a href="../../Zip/GeneralFlags.html">GeneralFlags</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/NoneCompressionHelper" data-name="zip::nonecompressionhelper">
+      <a href="../../Zip/NoneCompressionHelper.html">NoneCompressionHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Source" data-name="zip::source">
+      <a href="../../Zip/Source.html">Source</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/TimeHelper" data-name="zip::timehelper">
+      <a href="../../Zip/TimeHelper.html">TimeHelper</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Version" data-name="zip::version">
+      <a href="../../Zip/Version.html">Version</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writer" data-name="zip::writer">
+      <a href="../../Zip/Writer.html">Writer</a>
+      
+    </li>
+  
+  <li class="parent " data-id="github.com/pablotron/zip-crystal/Zip/Writers" data-name="zip::writers">
+      <a href="../../Zip/Writers.html">Writers</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/DirEntry" data-name="zip::writers::direntry">
+      <a href="../../Zip/Writers/DirEntry.html">DirEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/FileEntry" data-name="zip::writers::fileentry">
+      <a href="../../Zip/Writers/FileEntry.html">FileEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/pablotron/zip-crystal/Zip/Writers/WriterEntry" data-name="zip::writers::writerentry">
+      <a href="../../Zip/Writers/WriterEntry.html">WriterEntry</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+</div>
+
+<div id="main-content">
+<h1 class="type-name">
+
+  <span class="kind">class</span> Zip::Extra::Zip64
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Zip/Extra/Zip64.html">Zip::Extra::Zip64</a></li><li class="superclass"><a href="../../Zip/Extra/Base.html">Zip::Extra::Base</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>Overview</h2>
+
+  <p>ZIP64 extra data associated with <code><a href="../../Zip/Entry.html">Entry</a></code>.</p>
+
+<p>You should not need to instantiate this class directly; it is
+created as-needed by <code><a href="../../Zip/Writer.html#add%28path%3AString%2Cio%3AIO%2Cmethod%3ACompressionMethod%3D%3Cspanclass%3D%22t%22%3ECompressionMethod%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFLATE%3C%2Fspan%3E%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Czip64%3ABool%3D%3Cspanclass%3D%22n%22%3Efalse%3C%2Fspan%3E%29%3AUInt64-instance-method">Writer#add</a>()</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>Defined in:</h2>
+  
+
+
+
+  
+    <h2>Constant Summary</h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="CODE">
+        <strong>CODE</strong> = <code><span class="n">1</span>.to_u16</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>ZIP64 extra code</p>
+      </dd>
+      
+    
+  </dl>
+
+
+
+  <h2>Class Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28size%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Ccompressed_size%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Cpos%3AUInt64%7CNil%3D%3Cspanclass%3D%22n%22%3Enil%3C%2Fspan%3E%2Cdisk_start%3AUInt32%7CNil%3D%3Cspanclass%3D%22n%22%3Enil%3C%2Fspan%3E%29-class-method" class="signature"><strong>.new</strong>(size : UInt64 = <span class="n">0_u64</span>, compressed_size : UInt64 = <span class="n">0_u64</span>, pos : UInt64 | Nil = <span class="n">nil</span>, disk_start : UInt32 | Nil = <span class="n">nil</span>)</a>
+        
+          <div class="summary"><p>Create ZIP64 extra data associated with <code><a href="../../Zip/Entry.html">Entry</a></code> from given attributes.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28data%3ABytes%29-class-method" class="signature"><strong>.new</strong>(data : Bytes)</a>
+        
+          <div class="summary"><p>Parse ZIP64 extra data from given buffer.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <h2>Instance Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#compressed_size%3AUInt64-instance-method" class="signature"><strong>#compressed_size</strong> : UInt64</a>
+        
+          <div class="summary"><p>Compressed file size (64-bit unsigned integer).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#disk_start%3AUInt32%7CNil-instance-method" class="signature"><strong>#disk_start</strong> : UInt32 | Nil</a>
+        
+          <div class="summary"><p>Starting disk (optional).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pos%3AUInt64%7CNil-instance-method" class="signature"><strong>#pos</strong> : UInt64 | Nil</a>
+        
+          <div class="summary"><p>Position in output (optional).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#size%3AUInt64-instance-method" class="signature"><strong>#size</strong> : UInt64</a>
+        
+          <div class="summary"><p>File size (64-bit unsigned integer).</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+  <h3>Instance methods inherited from class <code><a href="../../Zip/Extra/Base.html">Zip::Extra::Base</a></code></h3>
+  
+  
+    <a href="../../Zip/Extra/Base.html#bytes_needed%3AUInt16-instance-method" class="tooltip">
+      <span>bytes_needed : UInt16</span>
+    bytes_needed</a>, 
+    
+  
+    <a href="../../Zip/Extra/Base.html#code%3AUInt16-instance-method" class="tooltip">
+      <span>code : UInt16</span>
+    code</a>, 
+    
+  
+    <a href="../../Zip/Extra/Base.html#code%3D%28code%29-instance-method" class="tooltip">
+      <span>code=(code)</span>
+    code=</a>, 
+    
+  
+    <a href="../../Zip/Extra/Base.html#data%3ASlice%28UInt8%29-instance-method" class="tooltip">
+      <span>data : Slice(UInt8)</span>
+    data</a>, 
+    
+  
+    <a href="../../Zip/Extra/Base.html#data%3D%28data%29-instance-method" class="tooltip">
+      <span>data=(data)</span>
+    data=</a>, 
+    
+  
+    <a href="../../Zip/Extra/Base.html#to_s%28io%29%3AUInt16-instance-method" class="tooltip">
+      <span>to_s(io) : UInt16</span>
+    to_s</a>
+    
+  
+
+
+    
+
+  <h3>Class methods inherited from class <code><a href="../../Zip/Extra/Base.html">Zip::Extra::Base</a></code></h3>
+  
+  
+    <a href="../../Zip/Extra/Base.html#new%28code%3AUInt16%2Cdata%3ABytes%29-class-method" class="tooltip">
+      <span>new(code : UInt16, data : Bytes)</span>
+    new</a>
+    
+  
+
+
+  
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>Class Method Detail</h2>
+  
+    <div class="entry-detail" id="new&#40;size:UInt64&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u64&lt;/span&gt;,compressed_size:UInt64&#61;&lt;spanclass&#61;&quot;n&quot;&gt;0_u64&lt;/span&gt;,pos:UInt64|Nil&#61;&lt;spanclass&#61;&quot;n&quot;&gt;nil&lt;/span&gt;,disk_start:UInt32|Nil&#61;&lt;spanclass&#61;&quot;n&quot;&gt;nil&lt;/span&gt;&#41;-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(size : UInt64 = <span class="n">0_u64</span>, compressed_size : UInt64 = <span class="n">0_u64</span>, pos : UInt64 | Nil = <span class="n">nil</span>, disk_start : UInt32 | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28size%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Ccompressed_size%3AUInt64%3D%3Cspanclass%3D%22n%22%3E0_u64%3C%2Fspan%3E%2Cpos%3AUInt64%7CNil%3D%3Cspanclass%3D%22n%22%3Enil%3C%2Fspan%3E%2Cdisk_start%3AUInt32%7CNil%3D%3Cspanclass%3D%22n%22%3Enil%3C%2Fspan%3E%29-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Create ZIP64 extra data associated with <code><a href="../../Zip/Entry.html">Entry</a></code> from given
+attributes.</p>
+
+<p>You should not need to instantiate this class directly; it is
+created as-needed by <code><a href="../../Zip/Writer.html#add%28path%3AString%2Cio%3AIO%2Cmethod%3ACompressionMethod%3D%3Cspanclass%3D%22t%22%3ECompressionMethod%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3E%3A%3A%3C%2Fspan%3E%3Cspanclass%3D%22t%22%3EDEFLATE%3C%2Fspan%3E%2Ctime%3ATime%3D%3Cspanclass%3D%22t%22%3ETime%3C%2Fspan%3E.now%2Ccomment%3AString%3D%3Cspanclass%3D%22s%22%3E%26quot%3B%26quot%3B%3C%2Fspan%3E%2Czip64%3ABool%3D%3Cspanclass%3D%22n%22%3Efalse%3C%2Fspan%3E%29%3AUInt64-instance-method">Writer#add</a>()</code>.</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new&#40;data:Bytes&#41;-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(data : Bytes)
+
+        <a class="method-permalink" href="#new%28data%3ABytes%29-class-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Parse ZIP64 extra data from given buffer.</p>
+
+<p>You should not need to instantiate this class directly; it is
+created as-needed by <code><a href="../../Zip/Archive.html">Archive</a></code>.</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>Instance Method Detail</h2>
+  
+    <div class="entry-detail" id="compressed_size:UInt64-instance-method">
+      <div class="signature">
+        
+        def <strong>compressed_size</strong> : UInt64
+
+        <a class="method-permalink" href="#compressed_size%3AUInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Compressed file size (64-bit unsigned integer).</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="disk_start:UInt32|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>disk_start</strong> : UInt32 | Nil
+
+        <a class="method-permalink" href="#disk_start%3AUInt32%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Starting disk (optional).</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pos:UInt64|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>pos</strong> : UInt64 | Nil
+
+        <a class="method-permalink" href="#pos%3AUInt64%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Position in output (optional).</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="size:UInt64-instance-method">
+      <div class="signature">
+        
+        def <strong>size</strong> : UInt64
+
+        <a class="method-permalink" href="#size%3AUInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>File size (64-bit unsigned integer).</p></div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>
