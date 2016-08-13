@@ -54,6 +54,8 @@ require "zlib"
 #
 # Reading from a zip file:
 #
+#     require "zip-crystal/zip"
+#
 #     # create output MemoryIO
 #     mem_io = MemoryIO.new
 #
