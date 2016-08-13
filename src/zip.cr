@@ -35,6 +35,19 @@ require "zlib"
 #
 # Library for reading and writing zip files.
 #
+# Features:
+# * Read and write zip files
+# * Native Crystal, no dependencies other than zlib
+# * ZIP64 support
+# * Store and DEFLATE compression
+# * UTF-8 filename and comment support (EFS)
+#
+# TODO:
+# * LZMA and BZip2 compression
+# * Encryption (Legacy and Strong Encryption)
+# * Split archives (e.g. multi-disk archives)
+# * Legacy Unicode support
+#
 # Examples:
 #
 # Reading from a zip file:
