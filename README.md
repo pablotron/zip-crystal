@@ -6,6 +6,8 @@ Read and write zip archives natively from
 *Features*
 * Read and write zip files
 * Native Crystal, no dependencies other than zlib
+* Stream writing (e.g. write zip to socket, pipe or other arbitrary,
+  non-seekable IO)
 * ZIP64 support
 * Store and DEFLATE compression
 * UTF-8 filename and comment support (EFS)
