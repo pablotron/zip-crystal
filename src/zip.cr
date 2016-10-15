@@ -2096,9 +2096,9 @@ module Zip
       data_mem_io = MemoryIO.new(data_buf)
 
       # read path, extras, and comment from data memory io
-      @path = read_string(data_mem_io, @path_len, "name") as String
-      @extras = read_extras(data_mem_io, @extras_len) as Array(Extra::Base)
-      @comment = read_string(data_mem_io, @comment_len, "comment") as String
+      @path = read_string(data_mem_io, @path_len, "name").as(String)
+      @extras = read_extras(data_mem_io, @extras_len).as(Array(Extra::Base))
+      @comment = read_string(data_mem_io, @comment_len, "comment").as(String)
 
       if e = @extras.find { |e| e.code == Extra::Zip64::CODE }
         e = e.as(Extra::Zip64)
@@ -2260,7 +2260,7 @@ module Zip
         @io.pos = @pos + 30_u32 + name_len
 
         # read local extras
-        @local_extras = read_extras(@io, extras_len) as Array(Extra::Base)
+        @local_extras = read_extras(@io, extras_len).as(Array(Extra::Base))
       end
 
       # return results
