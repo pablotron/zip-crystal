@@ -77,7 +77,7 @@ module Zip
   #
   # Version of zip-crystal library.
   #
-  VERSION = "0.1.0"
+  VERSION = "0.1.1"
 
   #
   # Magic numbers for various data in Zip stream.

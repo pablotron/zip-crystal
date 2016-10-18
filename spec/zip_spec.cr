@@ -93,7 +93,6 @@ describe Zip do
       puts "file has #{zip.size} entries"
 
       zip.each do |e|
-
         if e.dir?
           puts "#{e.path} is a directory"
         else
@@ -101,6 +100,20 @@ describe Zip do
           # e.write(STDOUT)
           e.write(io)
           io.close
+        end
+      end
+    end
+  end
+
+  it "reads jnl.zip" do
+    Zip.read(File.join(TEST_DIR, "jnl.zip")) do |zip|
+      puts "file has #{zip.size} entries"
+
+      zip.each do |e|
+        if e.dir?
+          puts "#{e.path} is a directory"
+        else
+          puts "#{e.path} is a file"
         end
       end
     end
