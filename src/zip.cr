@@ -574,7 +574,7 @@ module Zip
 
       # read buffer
       data = Bytes.new(len)
-      io.read(data)
+      io.read_fully(data)
 
       case code
       when Zip64::CODE
@@ -848,7 +848,7 @@ module Zip
         tmp_buf = (tmp_len < BUFFER_SIZE) ? src_buf[src_ofs, tmp_len] : src_buf
 
         # read from source into buffer
-        if ((len = src_io.read(tmp_buf)) != tmp_len)
+        if ((len = src_io.read_fully(tmp_buf)) != tmp_len)
           raise Error.new("truncated read (got #{len}, expected #{tmp_len})")
         end
 
@@ -2031,7 +2031,7 @@ module Zip
       head_buf = Bytes.new(46)
 
       # read entry
-      if ((head_len = io.read(head_buf)) != 46)
+      if ((head_len = io.read_fully(head_buf)) != 46)
         raise Error.new("couldn't read full CDR entry (#{head_len} != 46)")
       end
 
@@ -2084,11 +2084,15 @@ module Zip
       # close memory io
       head_mem_io.close
 
-      # create and populate data buffer
+      # create data buffer
       # (holds path, extras, and comment data)
       data_len = @path_len + @extras_len + @comment_len
       data_buf = Bytes.new(data_len)
-      if io.read(data_buf) != data_len
+
+      begin
+        # populate data buffer
+        io.read_fully(data_buf)
+      rescue
         raise Error.new("couldn't read entry CDR name, extras, and comment")
       end
 
@@ -2167,7 +2171,7 @@ module Zip
       @io.pos = @pos
 
       # read local header into buffer
-      @io.read(buf)
+      @io.read_fully(buf)
 
       # create memory io from buffer
       mem_io = MemoryIO.new(buf, false)
@@ -2277,7 +2281,7 @@ module Zip
       if len > 0
         # create buffer of extras data
         buf = Bytes.new(len)
-        if io.read(buf) != len
+        if io.read_fully(buf) != len
           raise Error.new("couldn't read CDR entry extras")
         end
 
@@ -2307,7 +2311,7 @@ module Zip
       if len > 0
         buf = Bytes.new(len)
 
-        if io.read(buf) != len
+        if io.read_fully(buf) != len
           raise Error.new("couldn't read CDR entry #{name}")
         end
 
@@ -2389,7 +2393,7 @@ module Zip
 
       # read footer into memory io
       @io.pos = footer_pos + 4
-      if ((len = @io.read(mem)) < mem.size)
+      if ((len = @io.read_fully(mem)) < mem.size)
         raise Error.new("couldn't read zip footer")
       end
 
@@ -2421,7 +2425,7 @@ module Zip
         @io.pos = footer_pos + 22
 
         # read comment data
-        if ((len = @io.read(slice)) != @comment_len)
+        if ((len = @io.read_fully(slice)) != @comment_len)
           raise Error.new("archive comment read truncated")
         end
 
@@ -2445,7 +2449,7 @@ module Zip
 
         # seek to zip64 footer position and read it in
         z64_pos = find_zip64_footer(@io, footer_pos)
-        @io.read(buf)
+        @io.read_fully(buf)
 
         # read and check magic
         magic = UInt32.from_io(mem_io, LE)
@@ -2484,7 +2488,7 @@ module Zip
 
           # skip to data position and read it in
           @io.pos = z64_pos + 56
-          @io.read(z64_data_buf)
+          @io.read_fully(z64_data_buf)
 
           # return buffer
           z64_data_buf
@@ -2642,7 +2646,8 @@ module Zip
       io.pos = cdr_pos
 
       # read entries
-      num_entries.times do
+      num_entries.times do |i|
+        STDERR.puts "entry = #{i}, io.pos = #{io.pos}"
         # create new entry
         entry = Entry.new(io)
 
@@ -2676,7 +2681,7 @@ module Zip
       while curr_pos >= 0
         # seek to current position and load possible cdr into buffer
         io.pos = curr_pos
-        io.read(buf)
+        io.read_fully(buf)
 
         # rewind memory io
         mem_io.rewind
@@ -2714,9 +2719,9 @@ module Zip
 
       curr_pos = footer_pos - 20
       while curr_pos >= 0
-        # sek to current position and read it into buffer
+        # seek to current position and read it into buffer
         io.pos = curr_pos
-        io.read(buf)
+        io.read_fully(buf)
 
         # read what might be the zip64 locator magic
         maybe_magic = UInt32.from_io(mem_io, LE)
