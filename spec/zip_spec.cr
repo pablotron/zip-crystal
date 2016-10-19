@@ -105,6 +105,7 @@ describe Zip do
     end
   end
 
+  # see issue #1 (read vs read_fully)
   it "reads jnl.zip" do
     Zip.read(File.join(TEST_DIR, "jnl.zip")) do |zip|
       puts "file has #{zip.size} entries"
