@@ -2647,7 +2647,6 @@ module Zip
 
       # read entries
       num_entries.times do |i|
-        STDERR.puts "entry = #{i}, io.pos = #{io.pos}"
         # create new entry
         entry = Entry.new(io)
 
