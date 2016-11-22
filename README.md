@@ -42,7 +42,7 @@ Zip.write("foo.zip") do |zip|
 end
 
 # create memory io
-mem_io = MemoryIO.new
+mem_io = IO::Memory.new
 
 # read from "foo.zip"
 Zip.read("foo.zip") do |zip|
