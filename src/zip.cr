@@ -2349,7 +2349,7 @@ module Zip
   #
   class Archive
     include Enumerable(Entry)
-    include Iterable
+    include Iterable(Entry)
 
     #
     # Return an array of entries in this Archive.
