@@ -56,8 +56,8 @@ require "zlib"
 #
 #     require "zip-crystal/zip"
 #
-#     # create output MemoryIO
-#     mem_io = MemoryIO.new
+#     # create output IO::Memory
+#     mem_io = IO::Memory.new
 #
 #     # read from "foo.zip"
 #     Zip.read("foo.zip") do |zip|
@@ -521,7 +521,7 @@ module Zip
 
         # create backing buffer and mem io
         buf = Bytes.new(len)
-        io = MemoryIO.new(buf)
+        io = IO::Memory.new(buf)
 
         @size.to_u64.to_io(io, LE)
         @compressed_size.to_u64.to_io(io, LE)
@@ -544,7 +544,7 @@ module Zip
         super(CODE, data)
 
         # create memory io over buffer
-        io = MemoryIO.new(data, false)
+        io = IO::Memory.new(data, false)
 
         @size = UInt64.from_io(io, LE).as(UInt64)
         @compressed_size = UInt64.from_io(io, LE).as(UInt64)
@@ -593,7 +593,7 @@ module Zip
         buf = Bytes.new(extras.reduce(0) { |r, e| r + e.bytes_needed })
 
         # create io and write each extra data to io
-        io = MemoryIO.new(buf)
+        io = IO::Memory.new(buf)
         extras.each { |e| e.to_s(io) }
         io.close
 
@@ -1495,7 +1495,7 @@ module Zip
       comment : String = "",
     ) : UInt64
       zip64 = (data.size >= UInt32::MAX)
-      add(path, MemoryIO.new(data), method, time, comment, zip64)
+      add(path, IO::Memory.new(data), method, time, comment, zip64)
     end
 
     #
@@ -1790,12 +1790,12 @@ module Zip
 
     #
     # Instantiate a new `Source` from the given `IO::FileDescriptor` or
-    # `MemoryIO` object.
+    # `IO::Memory` object.
     #
     # You should not need to instantiate this class directly; use
     # `Zip.read()` instead.
     #
-    def initialize(@io : IO::FileDescriptor | MemoryIO)
+    def initialize(@io : IO::FileDescriptor | IO::Memory)
     end
 
     delegate read, to: @io
@@ -1811,8 +1811,8 @@ module Zip
   #
   # Example:
   #
-  #     # create MemoryIO
-  #     io = MemoryIO.new
+  #     # create IO::Memory
+  #     io = IO::Memory.new
   #
   #     # open "foo.zip"
   #     Zip.read("foo.zip") do |zip|
@@ -2036,7 +2036,7 @@ module Zip
       end
 
       # create memory io for slice
-      head_mem_io = MemoryIO.new(head_buf, false)
+      head_mem_io = IO::Memory.new(head_buf, false)
 
       magic = UInt32.from_io(head_mem_io, LE)
       if magic != MAGIC[:cdr_header]
@@ -2097,7 +2097,7 @@ module Zip
       end
 
       # create data memory io
-      data_mem_io = MemoryIO.new(data_buf)
+      data_mem_io = IO::Memory.new(data_buf)
 
       # read path, extras, and comment from data memory io
       @path = read_string(data_mem_io, @path_len, "name").as(String)
@@ -2174,7 +2174,7 @@ module Zip
       @io.read_fully(buf)
 
       # create memory io from buffer
-      mem_io = MemoryIO.new(buf, false)
+      mem_io = IO::Memory.new(buf, false)
 
       # check magic header
       magic = UInt32.from_io(mem_io, LE)
@@ -2286,7 +2286,7 @@ module Zip
         end
 
         # create memory io over buffer
-        mem_io = MemoryIO.new(buf, false)
+        mem_io = IO::Memory.new(buf, false)
 
         # read extras from io
         while mem_io.pos != mem_io.size
@@ -2349,7 +2349,7 @@ module Zip
   #
   class Archive
     include Enumerable(Entry)
-    include Iterable
+    include Iterable(Entry)
 
     #
     # Return an array of entries in this Archive.
@@ -2398,7 +2398,7 @@ module Zip
       end
 
       # create memory io for slice
-      mem_io = MemoryIO.new(mem, false)
+      mem_io = IO::Memory.new(mem, false)
 
       # read disk numbers
       # (convert to u32 so type matches zip64 values)
@@ -2445,7 +2445,7 @@ module Zip
          @cdr_len == UInt32::MAX || @cdr_pos == UInt32::MAX
         # create buffer and mem_io for zip64 header
         buf = Bytes.new(56)
-        mem_io = MemoryIO.new(buf, false)
+        mem_io = IO::Memory.new(buf, false)
 
         # seek to zip64 footer position and read it in
         z64_pos = find_zip64_footer(@io, footer_pos)
@@ -2549,7 +2549,7 @@ module Zip
     # Example:
     #
     #     # get bar.txt and write it into memory io
-    #     io = MemoryIO.new
+    #     io = IO::Memory.new
     #     zip["bar.txt"].write(io)
     #
     def [](path : String) : Entry
@@ -2563,7 +2563,7 @@ module Zip
     #
     #     # write contents of "bar.txt" into memory io if it exists
     #     if e = zip["bar.txt"]?
-    #       io = MemoryIO.new
+    #       io = IO::Memory.new
     #       e.write(io)
     #     end
     #
@@ -2577,7 +2577,7 @@ module Zip
     # Example:
     #
     #     # write contents of third entry from archive into memory io
-    #     io = MemoryIO.new
+    #     io = IO::Memory.new
     #     zip[2].write(io)
     #
     def [](id : Int) : Entry
@@ -2591,7 +2591,7 @@ module Zip
     #
     #     # write contents of third entry from archive into memory io
     #     if e = zip[2]?
-    #       io = MemoryIO.new
+    #       io = IO::Memory.new
     #       e.write(io)
     #     end
     #
@@ -2674,7 +2674,7 @@ module Zip
 
       # create buffer and memory io around it
       buf = Bytes.new(22)
-      mem_io = MemoryIO.new(buf, false)
+      mem_io = IO::Memory.new(buf, false)
 
       curr_pos = end_pos - 22
       while curr_pos >= 0
@@ -2714,7 +2714,7 @@ module Zip
 
     private def find_zip64_footer(io : Source, footer_pos : Int) : UInt64
       buf = Bytes.new(20)
-      mem_io = MemoryIO.new(buf, false)
+      mem_io = IO::Memory.new(buf, false)
 
       curr_pos = footer_pos - 20
       while curr_pos >= 0
@@ -2755,7 +2755,7 @@ module Zip
   # Example:
   #
   #     # create memory io for contents of "bar.txt"
-  #     io = MemoryIO.new
+  #     io = IO::Memory.new
   #
   #     # read "bar.txt" from "foo.zip"
   #     Zip.read(File.open("foo.zip", "rb")) do |zip|
@@ -2776,10 +2776,10 @@ module Zip
   # Example:
   #
   #     # create memory io for contents of "bar.txt"
-  #     io = MemoryIO.new
+  #     io = IO::Memory.new
   #
   #     # extract "bar.txt" from zip archive in Slice some_slice and
-  #     # save it to MemoryIO
+  #     # save it to IO::Memory
   #     Zip.read(some_slice) do |zip|
   #       zip["bar.txt"].write(io)
   #     end
@@ -2788,7 +2788,7 @@ module Zip
     slice : Bytes,
     &cb   : Archive -> \
   ) : Void
-    src = Source.new(MemoryIO.new(slice, false))
+    src = Source.new(IO::Memory.new(slice, false))
     read(src, &cb)
   end
 
@@ -2798,9 +2798,9 @@ module Zip
   # Example:
   #
   #     # create memory io for contents of "bar.txt"
-  #     io = MemoryIO.new
+  #     io = IO::Memory.new
   #
-  #     # extract "bar.txt" from "foo.zip" and save it to MemoryIO
+  #     # extract "bar.txt" from "foo.zip" and save it to IO::Memory
   #     Zip.read("foo.zip") do |zip|
   #       zip["bar.txt"].write(io)
   #     end

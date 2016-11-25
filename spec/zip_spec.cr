@@ -36,7 +36,7 @@ describe Zip do
     end
   end
 
-  it "creates an entry from a MemoryIO" do
+  it "creates an entry from an IO::Memory" do
     Zip.write(File.join(TEST_DIR, "test-memio.zip")) do |zip|
       zip.add("bar.txt", "bar")
     end
@@ -48,9 +48,9 @@ describe Zip do
     end
   end
 
-  it "creates an archive from a MemoryIO, String, and File" do
+  it "creates an archive from an IO::Memory, String, and File" do
     Zip.write(File.join(TEST_DIR, "test-many.zip")) do |zip|
-      zip.add("foo.txt", MemoryIO.new("foo"))
+      zip.add("foo.txt", IO::Memory.new("foo"))
       zip.add("bar.txt", "bar")
       zip.add_file("test.cr", TEST_FILE_PATH)
       zip.add_dir("example-dir")
@@ -96,7 +96,7 @@ describe Zip do
         if e.dir?
           puts "#{e.path} is a directory"
         else
-          io = MemoryIO.new
+          io = IO::Memory.new
           # e.write(STDOUT)
           e.write(io)
           io.close
